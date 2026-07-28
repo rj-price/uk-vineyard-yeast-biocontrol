@@ -1,0 +1,8 @@
+isolate	seq_id	species	asm_source	assembly	seed_species
+UY1	Y1_1	Rhodotorula_babjevae	spades	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_1_EKDN240060028-1A_22FLL7LT4_L6_scaffolds.fasta	ustilago_maydis
+TY26	Y2_9	Metschnikowia_ziziphicola	spades	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_9_EKDN240060057-1A_22F7GNLT4_L1_scaffolds.fasta	candida_albicans
+TY30	Y2_13	Metschnikowia_pulcherrima	spades	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_13_EKDN240060061-1A_22FLL7LT4_L6_scaffolds.fasta	candida_albicans
+TY4	Y1_8	Vishniacozyma_carnescens	spades	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_8_EKDN240060035-1A_22FLL7LT4_L6_scaffolds.fasta	cryptococcus
+TY6	Y1_10	Sporobolomyces_roseus	spades	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_10_EKDN240060037-1A_22FLL7LT4_L6_scaffolds.fasta	ustilago_maydis
+RY14	Y3_6	Hanseniaspora_uvarum	platanus	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/analysis/final_assemblies/ascomycetes_platanus/Y3_6.fasta	saccharomyces_cerevisiae_S288C
+RY13	Y3_5	Pichia_sp	platanus	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/analysis/final_assemblies/ascomycetes_platanus/Y3_5.fasta	saccharomyces_cerevisiae_S288C

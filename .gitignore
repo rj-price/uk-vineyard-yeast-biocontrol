@@ -1,0 +1,24 @@
+# Keep this a code-only repository — no data, results, logs or binaries
+__pycache__/
+*.pyc
+logs/
+results/
+*.log
+
+# Sequence / assembly data (deposited at NCBI PRJNA1502812)
+*.fasta
+*.fa
+*.fna
+*.fastq
+*.fq
+*.fastq.gz
+*.fq.gz
+*.bam
+*.sam
+
+# Large intermediates
+*.zip
+*.tar
+*.delta
+*.snps
+*.coords

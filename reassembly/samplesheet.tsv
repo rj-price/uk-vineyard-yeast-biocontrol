@@ -1,0 +1,27 @@
+isolate	seq_id	species	exp_genome_mb	old_assembly	old_busco	old_n50	old_size
+RY1	Y2_14	Hanseniaspora uvarum	9.0	NA		1038	14332680
+RY2	Y2_15	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_15_EKDN240060063-1A_22FLL7LT4_L6_scaffolds.fasta	35.6	986	14836824
+RY3	Y2_16	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_16_EKDN240060064-1A_22FLL7LT4_L6_scaffolds.fasta	33.5	917	15400827
+RY4	Y2_17	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_17_EKDN240060065-1A_22FLL7LT4_L6_scaffolds.fasta	35.4	984	15269964
+RY5	Y2_18	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_18_EKDN240060066-1A_22FLL7LT4_L6_scaffolds.fasta	32.0	946	14993328
+RY7	Y2_20	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_20_EKDN240060067-1A_22F7GNLT4_L1_scaffolds.fasta	34.8	1003	14739068
+RY8	Y2_21	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_21_EKDN240060068-1A_22FLL7LT4_L6_scaffolds.fasta	35.6	1025	15031808
+RY9	Y3_1	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_1_EKDN240060069-1A_22FLL7LT4_L6_scaffolds.fasta	36.4	1094	14590834
+RY19	Y3_11	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_11_EKDN240060079-1A_22FLL7LT4_L6_scaffolds.fasta	32.3	885	15668131
+RY20	Y3_12	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_12_EKDN240060080-1A_22FLL7LT4_L6_scaffolds.fasta	32.8	917	15401438
+RY21	Y3_13	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_13_EKDN240060081-1A_22F7GNLT4_L1_scaffolds.fasta	35.3	979	14804368
+RY22	Y3_14	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_14_EKDN240060082-1A_22FLL7LT4_L6_scaffolds.fasta	35.4	1033	15083774
+RY24	Y3_16	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_16_EKDN240060084-1A_22FLL7LT4_L6_scaffolds.fasta	35.6	1037	15196286
+RY25	Y3_17	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_17_EKDN240060085-1A_22FLL7LT4_L6_scaffolds.fasta	33.6	1055	14476699
+RY26	Y3_18	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_18_EKDN240060086-1A_22F7GNLT4_L1_scaffolds.fasta	32.1	930	15043077
+RY27	Y3_19	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_19_EKDN240060087-1A_22FLL7LT4_L6_scaffolds.fasta	35.5	992	14614403
+RY10	Y3_2	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_2_EKDN240060070-1A_22F7GNLT4_L1_scaffolds.fasta	37.2	1086	14433143
+RY11	Y3_3	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_3_EKDN240060071-1A_22FLL7LT4_L6_scaffolds.fasta	36.6	1095	14585916
+RY14	Y3_6	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_6_EKDN240060074-1A_22FLL7LT4_L6_scaffolds.fasta	34.5	1005	14998910
+RY15	Y3_7	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_7_EKDN240060075-1A_22FLL7LT4_L6_scaffolds.fasta	34.4	961	15203396
+RY16	Y3_8	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_8_EKDN240060076-1A_22FLL7LT4_L6_scaffolds.fasta	35.1	1092	14335672
+RY17	Y3_9	Hanseniaspora uvarum	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_9_EKDN240060077-1A_22FLL7LT4_L6_scaffolds.fasta	33.9	922	15024578
+RY18	Y3_10	Pichia sp.	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_10_EKDN240060078-1A_22FLL7LT4_L6_scaffolds.fasta	47.5	1093	18240144
+RY23	Y3_15	Pichia sp.	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_15_EKDN240060083-1A_22FLL7LT4_L6_scaffolds.fasta	50.1	1172	17628239
+RY12	Y3_4	Pichia sp.	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_4_EKDN240060072-1A_22FLL7LT4_L6_scaffolds.fasta	44.6	992	18948165
+RY13	Y3_5	Pichia sp.	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_5_EKDN240060073-1A_22FLL7LT4_L6_scaffolds.fasta	41.2	919	19458778

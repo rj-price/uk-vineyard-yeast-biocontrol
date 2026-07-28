@@ -1,0 +1,16 @@
+isolate	seq_id	species	group	exp_genome_mb	assembly	busco	n50	asm_size
+RY12	Y3_4	Pichia sp.	ascomycete	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_4_EKDN240060072-1A_22FLL7LT4_L6_scaffolds.fasta	44.6	992	18948165
+RY13	Y3_5	Pichia sp.	ascomycete	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_5_EKDN240060073-1A_22FLL7LT4_L6_scaffolds.fasta	41.2	919	19458778
+RY18	Y3_10	Pichia sp.	ascomycete	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_10_EKDN240060078-1A_22FLL7LT4_L6_scaffolds.fasta	47.5	1093	18240144
+RY23	Y3_15	Pichia sp.	ascomycete	11.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_15_EKDN240060083-1A_22FLL7LT4_L6_scaffolds.fasta	50.1	1172	17628239
+RY3	Y2_16	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_16_EKDN240060064-1A_22FLL7LT4_L6_scaffolds.fasta	33.5	917	15400827
+RY5	Y2_18	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_18_EKDN240060066-1A_22FLL7LT4_L6_scaffolds.fasta	32.0	946	14993328
+RY8	Y2_21	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_21_EKDN240060068-1A_22FLL7LT4_L6_scaffolds.fasta	35.6	1025	15031808
+RY10	Y3_2	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_2_EKDN240060070-1A_22F7GNLT4_L1_scaffolds.fasta	37.2	1086	14433143
+RY14	Y3_6	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_6_EKDN240060074-1A_22FLL7LT4_L6_scaffolds.fasta	34.5	1005	14998910
+RY17	Y3_9	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_9_EKDN240060077-1A_22FLL7LT4_L6_scaffolds.fasta	33.9	922	15024578
+RY22	Y3_14	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_14_EKDN240060082-1A_22FLL7LT4_L6_scaffolds.fasta	35.4	1033	15083774
+RY27	Y3_19	Hanseniaspora uvarum	ascomycete	9.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y3_19_EKDN240060087-1A_22FLL7LT4_L6_scaffolds.fasta	35.5	992	14614403
+UY1	Y1_1	Rhodotorula babjevae	basidio_control	21.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_1_EKDN240060028-1A_22FLL7LT4_L6_scaffolds.fasta	80.6	117184	21595177
+TY6	Y1_10	Sporobolomyces roseus	basidio_control	21.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_10_EKDN240060037-1A_22FLL7LT4_L6_scaffolds.fasta	91.3	210085	22583706
+TY4	Y1_8	Vishniacozyma carnescens	basidio_control	19.0	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_8_EKDN240060035-1A_22FLL7LT4_L6_scaffolds.fasta	92.3	1688980	19318164
