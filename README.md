@@ -113,4 +113,4 @@ The genome code is the assay code with a leading culture-`C` (`CUY→UY`, `CTY�
 
 ## Licence
 
-To be confirmed by the authors before public release.
+Released under the MIT Licence — see [`LICENSE`](LICENSE).
