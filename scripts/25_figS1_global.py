@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-25_figS1_global.py -> figures/manuscript/FigS1_global_context.{svg,png}
-Supplementary figure — global genomic context of the two lead biocontrol lineages.
+25_figS1_global.py -> figures/manuscript/Fig5_global.{svg,png}
+Manuscript Figure 5 (promoted from former Fig S1) — global genomic context of the
+two lead biocontrol lineages.
 (A) ANI within the Rhodotorula babjevae/graminis complex: the Kent isolates form a
     distinct third species-level cluster (incl. misannotated genomes from China &
     Australia), separate from both the R. babjevae and R. graminis type strains.
@@ -196,8 +197,8 @@ def main():
                title_fontsize=6.5)
     fig.text(0.02, 0.98, "A", fontsize=12, fontweight="bold", va="top")
     fig.text(0.02, 0.54, "B", fontsize=12, fontweight="bold", va="top")
-    fs.save(fig, f"{OUT}/FigS1_global_context")
-    print("wrote FigS1_global_context")
+    fs.save(fig, f"{OUT}/Fig5_global")
+    print("wrote Fig5_global (promoted from former Fig S1)")
 
 
 if __name__ == "__main__":

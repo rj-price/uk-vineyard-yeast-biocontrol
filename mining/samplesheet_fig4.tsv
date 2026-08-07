@@ -1,0 +1,14 @@
+isolate	seq_id	species	asm_source	assembly	seed_species
+RY14	Y3_6	Hanseniaspora_uvarum	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY14.fasta	na
+RY3	Y2_16	Hanseniaspora_uvarum	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY3.fasta	na
+RY4	Y2_17	Hanseniaspora_uvarum	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY4.fasta	na
+RY7	Y2_20	Hanseniaspora_uvarum	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY7.fasta	na
+RY25	Y3_17	Hanseniaspora_uvarum	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY25.fasta	na
+RY13	Y3_5	Pichia_sp	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY13.fasta	na
+RY23	Y3_15	Pichia_kluyveri	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/RY23.fasta	na
+TY26	Y2_9	Metschnikowia_ziziphicola	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/TY26.fasta	na
+TY30	Y2_13	Metschnikowia_pulcherrima	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/TY30.fasta	na
+UY1	Y1_1	Rhodotorula_babjevae	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/UY1.fasta	na
+TY27	Y2_10	Rhodotorula_babjevae	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/TY27.fasta	na
+TY28	Y2_11	Rhodotorula_babjevae	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/TY28.fasta	na
+TY29	Y2_12	Rhodotorula_babjevae	na	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/ncbi_upload/genomes/TY29.fasta	na

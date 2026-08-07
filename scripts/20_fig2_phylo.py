@@ -85,10 +85,14 @@ def panel_A(ax, iso2sp):
     for lf in list(tree.get_terminals()):
         if lf.name in DROP:
             tree.prune(lf)
-    # root on the Fusarium outgroup
+    # root on the Fusarium outgroup, then collapse the two near-identical F. venenatum
+    # tips (OUT_..._A/_B) to a single displayed outgroup leaf
     outs = [l for l in tree.get_terminals() if l.name.startswith("OUT_")]
     if len(outs) >= 2:
         tree.root_with_outgroup(*outs)
+        for extra in outs[1:]:
+            tree.prune(extra)
+        outs[0].name = "OUT_Fusarium_venenatum"
     elif outs:
         tree.root_with_outgroup(outs[0])
     tree.ladderize()
@@ -169,7 +173,8 @@ GENERA = {
     "Rhodotorula cf. babjevae": ["Rhodotorula_babjevae", "Rhodotorula_graminis",
                                  "Rhodotorula_kratochvilovae", "Rhodotorula_mucilaginosa",
                                  "Rhodotorula_toruloides"],
-    "Sporobolomyces": ["Sporobolomyces_roseus", "Rhodosporidiobolus_nylandii"],
+    "Sporobolomyces": ["Sporobolomyces_roseus", "Sporobolomyces_pararoseus",
+                       "Sporobolomyces_salmonicolor"],
     "Metschnikowia cf. pulcherrima": ["Metschnikowia_pulcherrima",
                                       "Metschnikowia_ziziphicola_fructicola",
                                       "Metschnikowia_chrysoperlae"],
@@ -178,21 +183,22 @@ GENERA = {
 
 
 def panel_B(ax):
-    a = pd.read_csv(f"{SID}/ani_raw.tsv", sep="\t", header=None,
+    # expanded fastANI run (ani2): queries = the 55 isolate assemblies in
+    # ncbi_upload/genomes/<isolate>.fasta; refs include the extra Sporobolomyces species.
+    a = pd.read_csv(f"{SID}/ani2_raw.tsv", sep="\t", header=None,
                     names=["q", "r", "ani", "m", "t"])
-    a["iso_sid"] = a.q.map(lambda p: sid(os.path.basename(p)))
+    a["iso"] = a.q.map(lambda p: os.path.basename(p).replace(".fasta", ""))
     a["ref"] = a.r.map(lambda p: re.sub(r"__GC.*", "", os.path.basename(p)))
     m = pd.read_csv(f"{DATA}/isolate_master.csv")
-    sid2iso = dict(zip(m.seq_id, m.isolate)); sid2sp = dict(zip(m.seq_id, m.species_genome))
-    a["iso"] = a.iso_sid.map(sid2iso); a["sp"] = a.iso_sid.map(sid2sp)
-    a = a[a.iso.notna()]
+    iso2sp = dict(zip(m.isolate, m.species_genome))
+    a["sp"] = a.iso.map(iso2sp)
+    a = a[a.sp.notna()]
 
     # rows: isolates from the ambiguous genera, grouped; cols: their references
     genus_of = {"Rhodotorula cf. babjevae": lambda s: "babjevae" in str(s),
                 "Sporobolomyces": lambda s: str(s).startswith("Sporobolomyces"),
                 "Metschnikowia cf. pulcherrima": lambda s: str(s).startswith("Metschnikowia"),
                 "Pichia kluyveri": lambda s: str(s).startswith("Pichia")}
-    rows, row_lab, row_grpline = [], [], []
     cols = []
     for g, refs in GENERA.items():
         cols += refs
@@ -203,24 +209,15 @@ def panel_B(ax):
         isos = sorted(i for i in a[a.sp.map(test)].iso.unique() if i not in DROP)
         for iso in isos:
             order.append(iso); group_of.append(g)
-    M = np.full((len(order) + 4, len(cols)), np.nan)
+    M = np.full((len(order), len(cols)), np.nan)
     for ri, iso in enumerate(order):
         sub = a[a.iso == iso]
         for ci, c in enumerate(cols):
             v = sub[sub.ref == c].ani
             if len(v):
                 M[ri, ci] = v.iloc[0]
-    # Pichia is absent from ani_raw (fastANI reported only its best hit); pull the
-    # kluyveri ANI from the per-isolate summary so all four ambiguous genera appear
-    sa = pd.read_csv(f"{DATA}/species_id_ani.csv")
-    pk = sa[sa.current_label.astype(str).str.startswith("Pichia")].sort_values("isolate")
-    ci_k = cols.index("Pichia_kluyveri")
-    base = len(order)
-    for j, (_, r) in enumerate(pk.iterrows()):
-        M[base + j, ci_k] = r.ani_best
-        order.append(r.isolate); group_of.append("Pichia kluyveri")
 
-    # drop reference columns with no data (e.g. Rhodosporidiobolus, distant Pichia refs)
+    # drop reference columns with no data (e.g. distant refs below fastANI's floor)
     keep = ~np.all(np.isnan(M), axis=0)
     M = M[:, keep]
     cols = [c for c, k in zip(cols, keep) if k]

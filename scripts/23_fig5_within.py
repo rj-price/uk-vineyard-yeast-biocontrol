@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """
-23_fig5_within.py  ->  figures/manuscript/Fig5_within.{svg,png}
-Manuscript Figure 5 — Botrytis-specific antagonism is not gene-content-encoded.
-(A) within-genus phenotype: %MI per pathogen. Botrytis activity varies; Fusarium
-    activity is conserved (Rhodotorula quartet; Hanseniaspora gradient).
-(B) matched gene content is flat within each genus (secretome, SM, secreted enzymes).
-(C) within-group ANI: UY1/TY27 are clonal (99.99%), a natural experiment.
-(D) clonal pair UY1(Bc+)/TY27(Bc-): 602 SNPs + 310 indels; variant classes, and
-    biocontrol genes are NOT enriched among the protein-altering variants.
+23_fig5_within.py  ->  figures/manuscript/FigS1_clonal_ani.{svg,png}
+Supplementary figure (demoted from former Fig 5C) — within-group ANI of the two
+conspecific comparison sets, showing the near-clonal UY1/TY27 pair (99.99% ANI)
+that underpins the natural-experiment argument. The within-genus phenotype and
+matched-gene-content panels now live in main Fig 4 (E/F); the clonal-variant
+breakdown is reported in the text.
 """
 import os, re, sys
 import numpy as np, pandas as pd
@@ -180,32 +178,22 @@ def main():
     master = pd.read_csv(f"{DATA}/isolate_master.csv")
     seqmap = dict(zip(master.isolate, master.seq_id))
 
-    fig = plt.figure(figsize=(7.4, 7.8))
-    axA = fig.add_axes([0.13, 0.62, 0.32, 0.32])
-    axB = fig.add_axes([0.60, 0.62, 0.33, 0.32])
-    axC1 = fig.add_axes([0.10, 0.25, 0.20, 0.20])
-    axC2 = fig.add_axes([0.35, 0.275, 0.15, 0.15])
-    axD = fig.add_axes([0.66, 0.13, 0.30, 0.24])
+    fig = plt.figure(figsize=(7.0, 3.6))
+    axC1 = fig.add_axes([0.10, 0.20, 0.34, 0.62])
+    axC2 = fig.add_axes([0.56, 0.30, 0.26, 0.42])
 
-    panel_A(axA)
-    panel_B(axB)
     im = ani_matrix(axC1, "Rhodotorula", ["UY1", "TY27", "TY28", "TY29"], seqmap,
-                    "Rhodotorula cf. babjevae", star=["UY1", "TY27"])
+                    "$\\it{Rhodotorula\\ cf.\\ babjevae}$", star=["UY1", "TY27"])
     ani_matrix(axC2, "Hanseniaspora", ["RY14", "RY7", "RY25"], seqmap,
-               "Hanseniaspora uvarum")
-    panel_D(axD)
-    cb = fig.colorbar(im, ax=axC2, fraction=0.06, pad=0.04, ticks=[99, 99.5, 100])
+               "$\\it{Hanseniaspora\\ uvarum}$")
+    cb = fig.colorbar(im, ax=axC2, fraction=0.06, pad=0.06, ticks=[99, 99.5, 100])
     cb.set_label("ANI (%)", fontsize=6); cb.ax.tick_params(labelsize=6, length=2)
 
-    fs.panel_letter(axA, "A", x=-0.16, y=1.04)
-    fs.panel_letter(axB, "B", x=-0.14, y=1.04)
-    fs.panel_letter(axC1, "C", x=-0.20, y=1.16)
-    fs.panel_letter(axD, "D", x=-0.10, y=1.06)
-    fig.text(0.10, 0.505, "Within-group ANI (clonal pair boxed)",
-             fontsize=7.5, fontweight="bold", va="bottom")
+    fig.text(0.5, 0.95, "Within-group ANI (near-clonal UY1/TY27 pair boxed)",
+             fontsize=8.5, fontweight="bold", va="top", ha="center")
 
-    fs.save(fig, f"{OUT}/Fig5_within")
-    print("wrote Fig5_within")
+    fs.save(fig, f"{OUT}/FigS1_clonal_ani")
+    print("wrote FigS1_clonal_ani (demoted from former Fig 5C)")
 
 
 if __name__ == "__main__":

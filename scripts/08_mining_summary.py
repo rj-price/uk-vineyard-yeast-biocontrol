@@ -20,7 +20,7 @@ import sys; sys.path.insert(0, os.path.dirname(__file__))
 from _palette import SP_COL as sp_col, spc, it
 
 MINE="analysis/mining"; DATA="analysis/data"; FIG="analysis/figures"
-sheet=pd.read_csv(f"{MINE}/samplesheet.tsv", sep="\t")
+sheet=pd.read_csv(f"{MINE}/samplesheet_fig4.tsv", sep="\t")
 
 # CAZy family -> biocontrol enzyme class (maps to Gideon's lytic-enzyme assays)
 CAZY_CLASS = {
@@ -102,7 +102,7 @@ print("\nSecondary-metabolite clusters across genomes:", dict(sm_all))
 
 # ---- FIGURE 11: biocontrol gene inventory heatmap (genomes x categories) ----
 # order genomes: Ascomycota (Hanseniaspora, Pichia, Metschnikowia) then Basidiomycota
-order=["RY14","RY13","TY26","TY30","UY1","TY6","TY4"]
+order=["RY14","RY3","RY4","RY7","RY25","RY13","RY23","TY26","TY30","UY1","TY27","TY28","TY29"]
 inv=inv.set_index("isolate").loc[[i for i in order if i in inv.isolate.values]].reset_index()
 cat_cols=list(CAZY_CLASS)+["MEROPS_protease"]+[c for c in inv.columns if c.startswith("SM:")]
 H=inv.set_index("isolate")[cat_cols].astype(float)

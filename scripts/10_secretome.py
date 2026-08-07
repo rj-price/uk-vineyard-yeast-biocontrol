@@ -29,7 +29,7 @@ def pkey(sp):
     return sp
 
 MINE="analysis/mining"; DATA="analysis/data"; FIG="analysis/figures"
-sheet=pd.read_csv(f"{MINE}/samplesheet.tsv", sep="\t")
+sheet=pd.read_csv(f"{MINE}/samplesheet_fig4.tsv", sep="\t")
 
 # CAZy family -> biocontrol enzyme class (same mapping as 08_mining_summary.py)
 CAZY_CLASS = {
@@ -48,7 +48,7 @@ def classify(cazyme_cell):
     fams=re.findall(r"(GH\d+|GT\d+|CBM\d+|CE\d+|PL\d+|AA\d+)", str(cazyme_cell))
     return {FAM2CLASS[f] for f in fams if f in FAM2CLASS}
 
-order=["RY14","RY13","TY26","TY30","UY1","TY6","TY4"]
+order=["RY14","RY3","RY4","RY7","RY25","RY13","RY23","TY26","TY30","UY1","TY27","TY28","TY29"]
 rows=[]
 for _,s in sheet.iterrows():
     iso=s.isolate; d=f"{MINE}/results/{iso}"
