@@ -2,7 +2,9 @@
 """
 16_clonal_variants.py
 Annotate the complete variant list separating the clonal pair UY1 (B. cinerea+,
-34.5% MI) and TY27 (B. cinerea-, 0% MI), 99.99% ANI / ~420 SNPs genome-wide.
+34.5% MI) and TY27 (B. cinerea-, 0% MI), 99.99% ANI. Variants are the read-validated
+calls from 38_clonal_reads.py (the earlier assembly-vs-assembly dnadiff set was ~86%
+assembly artefact).
 
 Because divergence is so low, no statistical outlier test is needed or possible:
 the variant list IS the candidate set. We classify every variant by gene context
@@ -124,9 +126,29 @@ def cds_effect(tid, pos, rbase, qbase, genes, cds, contigs):
     return (eff, f"{pr[ci]}{ci+1}{pa[ci]}", ci + 1)
 
 
+def read_validated():
+    """Read-validated UY1/TY27 differences from 38_clonal_reads.py (VCF-style alleles)."""
+    v = pd.read_csv(f"{DATA}/clonal_reads_validated.csv")
+    v = v[(v.group == REF) & (v[f"{QRY}_gt"] > 0)]
+    return pd.DataFrame(dict(rpos=v.pos, rbase=v.ref, qbase=v.alt.str.split(",").str[0],
+                             rctg=v.ctg, kind=np.where(v.indel, "indel", "snp")))
+
+
+def indel_effect(tid, pos, rbase, qbase, genes, cds):
+    """Frameshift / in-frame for an indel overlapping a CDS, else intron/UTR."""
+    if tid not in cds:
+        return "indel_noncoding_exon"
+    span = range(pos, pos + len(rbase))
+    if not any(s <= p <= e for s, e, _ in cds[tid] for p in span):
+        return "indel_intron_or_utr"
+    return "inframe_indel" if (len(qbase) - len(rbase)) % 3 == 0 else "frameshift"
+
+
 def main():
     os.chdir(PROJ)
-    d = read_snps(f"{CL}/UY1_vs_{QRY}.snps")
+    # read-level calls (reviewer point 3); the dnadiff set is kept for comparison in
+    # clonal_variants_dnadiff.csv / clonal_dnadiff_vs_reads.csv
+    d = read_validated()
     print(f"variants UY1 vs {QRY}: {len(d)} "
           f"({(d.kind=='snp').sum()} SNPs, {(d.kind=='indel').sum()} indel rows)")
 
@@ -144,7 +166,8 @@ def main():
             tid = ingene[0]
             ctx = "genic"
             eff, aac, cpos = (cds_effect(tid, r.rpos, r.rbase, r.qbase, genes, cds, contigs)
-                             if r.kind == "snp" else ("indel_in_gene", "", np.nan))
+                             if r.kind == "snp" else
+                             (indel_effect(tid, r.rpos, r.rbase, r.qbase, genes, cds), "", np.nan))
         elif inup:
             tid, ctx, eff, aac, cpos = inup[0], "upstream", "upstream", "", np.nan
         else:
@@ -177,7 +200,7 @@ def main():
                      "protease", "secreted", "product"]]
         print(show.to_string(index=False))
 
-    imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "indel_in_gene"])]
+    imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "frameshift", "inframe_indel"])]
     print(f"\n=== ALL protein-altering variants genome-wide: {len(imp)} in "
           f"{imp.transcript.nunique()} genes ===")
     print(imp.effect.value_counts().to_string())

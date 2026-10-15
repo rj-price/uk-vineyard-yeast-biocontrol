@@ -52,7 +52,8 @@ def sp_lab(r):
 
 fig, ax = plt.subplots(figsize=(7.4, 5.4))
 data = M.values.astype(float)
-im = ax.imshow(data, cmap="YlGnBu", vmin=76, vmax=100, aspect="auto")
+# same yellow-to-red ANI scale as Figs 2B and 5A
+im = ax.imshow(data, cmap="YlOrRd", vmin=78, vmax=100, aspect="auto")
 
 ax.set_xticks(range(len(cols))); ax.set_xticklabels([sp_lab(c) for c in cols], rotation=40, ha="right", fontsize=8)
 ax.set_yticks(range(len(row_order))); ax.set_yticklabels(row_order, fontsize=8)
@@ -67,30 +68,27 @@ for i in range(data.shape[0]):
             ax.text(j, i, f"{v:.1f}", ha="center", va="center", fontsize=7,
                     color="white" if v >= 92 else "black")
             if v >= 95:  # species-level match: outline
-                ax.add_patch(Rectangle((j-0.5, i-0.5), 1, 1, fill=False, ec="#d62728", lw=2))
+                ax.add_patch(Rectangle((j-0.5, i-0.5), 1, 1, fill=False, ec="black", lw=1.6))
 
 # separator between roseus group and cryptic species
 sep = len(roseus_grp) - 0.5
 ax.axhline(sep, color="black", lw=1.4)
-ax.annotate("$\\it{S.\\ roseus}$ group", xy=(-0.62, (len(roseus_grp)-1)/2),
+ax.annotate("$\\it{S.\\ roseus}$ group", xy=(-0.13, (len(roseus_grp)-1)/2),
             xycoords=("axes fraction", "data"), rotation=90, va="center", ha="center", fontsize=8)
-ax.annotate("cryptic sp.", xy=(-0.62, (len(roseus_grp)+len(cryptic)-1+len(roseus_grp))/2 - 0.0),
+ax.annotate("cryptic sp.", xy=(-0.13, (len(roseus_grp)+len(cryptic)-1+len(roseus_grp))/2 - 0.0),
             xycoords=("axes fraction", "data"), rotation=90, va="center", ha="center", fontsize=8)
 
-cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
+cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02, extend="min", ticks=[80, 85, 90, 95, 100])
 cb.set_label("ANI (%)", fontsize=8); cb.ax.tick_params(labelsize=7)
+cb.ax.axhline(95, color="#222222", lw=1.0)
 ax.set_title("Whole-genome ANI of the $\\it{Sporobolomyces}$ isolates against all\n"
-             "sampled $\\it{Sporobolomyces}$ species (red outline = ≥95% species threshold)",
-             fontsize=9)
-fig.text(0.5, -0.02,
-         "Blank cells (–): ANI below fastANI's reporting threshold (~76%), i.e. more "
-         "divergent than the values shown.",
-         ha="center", va="top", fontsize=7, color="#444444")
+             "sampled $\\it{Sporobolomyces}$ species", fontsize=9)
+# blank-cell explanation lives in the figure legend
 plt.tight_layout()
 for ext in ("png", "svg"):
-    plt.savefig(f"{FIG}/FigS4_sporobolomyces_ani.{ext}", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{FIG}/FigS3_sporobolomyces_ani.{ext}", dpi=300, bbox_inches="tight")
 plt.close()
-print("wrote FigS4_sporobolomyces_ani.png/.svg")
+print("wrote FigS3_sporobolomyces_ani.png/.svg")
 print(f"isolates: {len(roseus_grp)} roseus-group + {len(cryptic)} cryptic; refs: {len(cols)}")
 print("cryptic max-ANI to any Sporobolomyces ref:",
       {i: round(np.nanmax(M.loc[i].values), 1) for i in cryptic})

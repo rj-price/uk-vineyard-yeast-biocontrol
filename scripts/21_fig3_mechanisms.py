@@ -4,9 +4,9 @@
 Manuscript Figure 3 — complementary mechanistic assays on representative isolates
 selected per genus (n = 11).
 (A) VOC-mediated %MI (volatile assay), per pathogen.
-(B) iron competition: %MI at low (5) vs high (20 mg/L) Fe — a leftward shift with
-    added Fe indicates iron-dependent antagonism (competition). Strong for the
-    Fusaria in Rhodotorula & Metschnikowia; weak/mixed for B. cinerea.
+(B) iron dose response: %MI at 5 vs 20 mg/L FeCl3 — a leftward shift means added
+    FeCl3 lowered inhibition (consistent with, but not proof of, iron-dependent
+    antagonism). Consistent for the Fusaria; mixed for B. cinerea.
 (C) lytic-enzyme relative activity (REA) heatmap, 7 enzymes.
 """
 import os, sys
@@ -83,8 +83,8 @@ def panel_A(ax, d):
 
 
 def panel_B(ax, d):
-    """iron competition dumbbells: low (5) filled -> high (20 mg/L) open.
-    Leftward shift (added Fe relieves inhibition) = iron-dependent antagonism."""
+    """iron dose-response dumbbells: 5 mg/L FeCl3 filled -> 20 mg/L open.
+    Leftward shift = added FeCl3 lowered inhibition."""
     pairs = [("B. cinerea", "Fe_Bcinerea_5mgLFe", "Fe_Bcinerea_20mgLFe"),
              ("F. oxysporum", "Fe_Foxysporum_5mgLFe", "Fe_Foxysporum_20mgLFe"),
              ("F. graminearum", "Fe_Fgraminearum_5mgLFe", "Fe_Fgraminearum_20mgLFe")]
@@ -113,27 +113,28 @@ def panel_B(ax, d):
                 rotation=0)
         ax.plot([60.5, 60.5], [min(yy) - 0.3, max(yy) + 0.3], color=fs.PATHO_COL[pth],
                 lw=2, clip_on=False)
-    # direction cue: added Fe relieves Fusarium inhibition (iron competition)
-    fy = min(group_y["F. oxysporum"]) - 0.7
-    ax.annotate("", xy=(14, fy), xytext=(34, fy),
+    # direction cue: added FeCl3 lowers Fusarium inhibition
+    # sits top left, under the Fe-level key, in the empty space left of the B. cinerea rows
+    fy = 3.6
+    ax.annotate("", xy=(3, fy), xytext=(28, fy),
                 arrowprops=dict(arrowstyle="->", color="#555", lw=1.2))
-    ax.text(24, fy - 0.5, "+ Fe relieves inhibition\n(iron competition)", fontsize=5.5,
+    ax.text(15.5, fy - 0.35, "more FeCl$_3$,\nless inhibition", fontsize=5.5,
             ha="center", va="bottom", color="#555", style="italic")
     ax.set_yticks(yticks); ax.set_yticklabels(ylabs, fontsize=6)
     ax.set_ylim(len(rows) - 0.5, -0.5)
     ax.set_xlim(0, 66)
     ax.set_xlabel("%MI", fontsize=7)
-    ax.set_title("Iron competition (± Fe)", fontsize=8)
+    ax.set_title("Iron dose response", fontsize=8)
     ax.tick_params(axis="y", length=0, pad=10)
     species_chips(ax, yticks, [r[2] for r in rows])
     for _, yy in group_y.items():
         pass
     # legend for Fe level
-    h = [Line2D([0], [0], marker="o", ls="", ms=6, color="#555", label="5 mg/L Fe (low)"),
+    h = [Line2D([0], [0], marker="o", ls="", ms=6, color="#555", label="5 mg l$^{-1}$ FeCl$_3$"),
          Line2D([0], [0], marker="o", ls="", ms=6, mfc="white", mec="#555",
-                label="20 mg/L Fe (high)")]
-    ax.legend(handles=h, loc="lower right", frameon=False, fontsize=6,
-              handletextpad=0.3, bbox_to_anchor=(1.0, -0.02))
+                label="20 mg l$^{-1}$ FeCl$_3$")]
+    ax.legend(handles=h, loc="upper left", frameon=False, fontsize=6,
+              handletextpad=0.3, bbox_to_anchor=(0.0, 1.0))
 
 
 def panel_C(ax, d):
@@ -153,7 +154,7 @@ def panel_C(ax, d):
     species_chips(ax, np.arange(len(d)), d.sp.values)
     for s in ax.spines.values():
         s.set_visible(False)
-    ax.set_title("Lytic-enzyme activity (REA)", fontsize=8, pad=4)
+    ax.set_title("Lytic-enzyme activity", fontsize=8, pad=4)
     cb = plt.colorbar(im, ax=ax, fraction=0.045, pad=0.03, ticks=[1, 2, 3])
     cb.set_label("relative activity", fontsize=6)
     cb.ax.tick_params(labelsize=6, length=2)

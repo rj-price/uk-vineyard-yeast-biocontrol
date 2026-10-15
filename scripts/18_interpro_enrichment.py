@@ -111,7 +111,7 @@ def main():
     print("  (PFAM-only annotation reached 67.3%)")
 
     v = pd.read_csv(f"{DATA}/clonal_variants.csv").fillna("")
-    imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "indel_in_gene"])]
+    imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "frameshift", "inframe_indel"])]
     hit = set(imp.transcript) - {""}
     p["hit"] = p.protein.isin(hit)
     print(f"variant-bearing genes: {p.hit.sum()}")
@@ -142,6 +142,33 @@ def main():
                          p_naive=round(f.pvalue, 4),
                          p_length_controlled=round(p_adj, 4), coef=round(coef, 3)))
     r = pd.DataFrame(rows)
+
+    # length-matched permutation: random gene sets with the same protein-length decile
+    # composition as the variant-bearing genes
+    rng = np.random.default_rng(11)
+    p["lbin"] = pd.qcut(p.plen, 10, labels=False, duplicates="drop")
+    need = p[p.hit].lbin.value_counts()
+    pools = {b: p.index[p.lbin == b].values for b in need.index}
+    NPERM = 10000
+    draws = [np.concatenate([rng.choice(pools[b], n, replace=False) for b, n in need.items()])
+             for _ in range(NPERM)]
+    r["p_length_perm"] = [
+        round((sum(p.loc[d, c].sum() >= r_.n_hit for d in draws) + 1) / (NPERM + 1), 4)
+        for c, r_ in zip(r.category, r.itertuples())]
+
+    # biocontrol genes (CAZyme, MEROPS protease or SignalP-secreted) among variant-bearing genes
+    a = pd.read_csv(f"analysis/mining/results/{REF}/{REF}.annotations.txt", sep="\t", dtype=str).fillna("")
+    sec = set(open(f"analysis/mining/results/{REF}/{REF}.secreted_ids.txt").read().split())
+    bc = set(a.TranscriptID[(a.CAZyme != "") | (a.Protease != "") | a.TranscriptID.isin(sec)])
+    p["biocontrol"] = p.protein.isin(bc)
+    k, n = int((p.biocontrol & p.hit).sum()), int(p.hit.sum())
+    K, N = int(p.biocontrol.sum()), len(p)
+    fb = stats.fisher_exact([[k, n - k], [K - k, N - n - (K - k)]])
+    from statsmodels.stats.proportion import confint_proportions_2indep
+    lo, hi = confint_proportions_2indep(k, n, K - k, N - n, method="newcomb")
+    print(f"\nbiocontrol genes: {k}/{n} variant-bearing ({100*k/n:.1f}%) vs "
+          f"{K-k}/{N-n} rest of proteome ({100*(K-k)/(N-n):.1f}%); "
+          f"diff 95% CI {100*lo:+.1f} to {100*hi:+.1f} pp; Fisher P = {fb.pvalue:.3f}")
     r.to_csv(f"{DATA}/interpro_enrichment.csv", index=False)
     print("\n=== GO-category enrichment among variant-bearing genes ===")
     print("(p_length_controlled = logistic regression with log10 protein length)")

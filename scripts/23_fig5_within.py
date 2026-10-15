@@ -22,7 +22,7 @@ DATA = f"{PROJ}/analysis/data"
 ALL = f"{PROJ}/analysis/allelic"
 OUT = f"{PROJ}/analysis/figures/manuscript"
 
-GROUPS = [("Rhodotorula cf. babjevae", "Rhodotorula babjevae",
+GROUPS = [("Rhodotorula aff. babjevae", "Rhodotorula babjevae",
            ["UY1", "TY27", "TY28", "TY29"], "UY1"),
           ("Hanseniaspora uvarum", "Hanseniaspora uvarum",
            ["RY14", "RY7", "RY25"], "RY14")]
@@ -148,10 +148,10 @@ def ani_matrix(ax, genus, isos, seqmap, title, star=None):
 def panel_D(ax):
     v = pd.read_csv(f"{DATA}/clonal_variants.csv")
     cat = {"non-coding": int(((v.context == "intergenic") | (v.context == "upstream") |
-                              (v.effect == "intron")).sum()),
+                              v.effect.isin(["intron", "indel_intron_or_utr"])).sum()),
            "synonymous": int((v.effect == "synonymous").sum()),
-           "protein-\naltering": int(v.effect.isin(["missense", "indel_in_gene",
-                                                    "stop_lost"]).sum())}
+           "protein-\naltering": int(v.effect.isin(["missense", "nonsense", "frameshift",
+                                                    "inframe_indel", "stop_lost"]).sum())}
     labs = list(cat); vals = [cat[k] for k in labs]
     colours = ["#cccccc", "#9ecae1", "#08519c"]
     yb = np.arange(len(labs))
@@ -183,7 +183,7 @@ def main():
     axC2 = fig.add_axes([0.56, 0.30, 0.26, 0.42])
 
     im = ani_matrix(axC1, "Rhodotorula", ["UY1", "TY27", "TY28", "TY29"], seqmap,
-                    "$\\it{Rhodotorula\\ cf.\\ babjevae}$", star=["UY1", "TY27"])
+                    "$\\it{Rhodotorula}$ aff. $\\it{babjevae}$", star=["UY1", "TY27"])
     ani_matrix(axC2, "Hanseniaspora", ["RY14", "RY7", "RY25"], seqmap,
                "$\\it{Hanseniaspora\\ uvarum}$")
     cb = fig.colorbar(im, ax=axC2, fraction=0.06, pad=0.06, ticks=[99, 99.5, 100])

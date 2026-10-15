@@ -4,13 +4,13 @@
 Manuscript Figure 4 — genomic basis of biocontrol traits, across the 13 mined
 antagonist genomes (spanning the four antagonist genera; the non-antagonist
 Sporobolomyces/Vishniacozyma representatives are excluded).
-(A) cell-wall-degrading CAZyme inventory (counts per class).
-(B) protease arsenal: total vs SignalP-secreted (the secretome refines it).
-(C) antiSMASH secondary-metabolite clusters incl. pulcherrimin CDPS (Metschnikowia only).
-(D) KT395 killer toxin: present in all P. kluyveri, absent elsewhere.
-(E) within-genus phenotype: Botrytis %MI varies while Fusarium activity is conserved.
-(F) matched gene content is flat within each genus (secretome, SM, secreted enzymes),
-    so the Botrytis-activity differences are not gene-content-encoded.
+(A) polysaccharide-degrading CAZyme inventory (counts per class).
+(B) proteases: total vs SignalP-secreted.
+(C) antiSMASH biosynthetic gene clusters incl. pulcherrimin CDPS (Metschnikowia only).
+(D) within-genus contrasts: per-pathogen %MI (left) joined to matched gene content
+    (right: total CAZymes, total and secreted proteases, BGCs), coloured by deviation
+    from the genus mean. The KT395 killer-toxin result is stated in the text (the
+    former single-purpose panel was dropped in revision round 3).
 """
 import os, re, sys
 import numpy as np, pandas as pd
@@ -27,14 +27,13 @@ OUT = f"{PROJ}/analysis/figures/manuscript"
 
 # within-genus natural-experiment groups for panels E/F (conspecific comparators):
 # Botrytis activity varies, Fusarium activity conserved, gene content flat.
-GROUPS = [("Rhodotorula cf. babjevae", ["UY1", "TY27", "TY28", "TY29"], "UY1"),
+GROUPS = [("Rhodotorula aff. babjevae", ["UY1", "TY27", "TY28", "TY29"], "UY1"),
           ("Hanseniaspora uvarum", ["RY14", "RY7", "RY25"], "RY14")]
 PATHO = [("B. cinerea", "MI_Bcinerea"), ("F. oxysporum", "MI_Foxysporum"),
          ("F. graminearum", "MI_Fgraminearum")]
-GENE_METRICS = [("secretome", "n_secreted"), ("terpene\nclusters", "terpene"),
-                ("secr.\nprotease", "protease_sec"),
-                ("secr. β-1,3-\nglucanase", "b-1,3-glucanase|sec"),
-                ("secr.\nchitinase", "Chitinase (GH18/19)|sec")]
+# matched gene-content metrics for panel D: the same quantities as panels A-C
+GENE_METRICS = [("CAZymes", "n_cazyme"), ("proteases", "prot_tot"),
+                ("secreted\nproteases", "prot_sec"), ("BGCs", "bgc")]
 
 CAZ = ["Chitinase (GH18/19)", "b-1,3-glucanase (GH16/17/55/64/81/128)",
        "b-1,6-glucanase (GH30)", "Cellulase (GH5/6/7/12/45)", "Amylase (GH13/15)",
@@ -62,10 +61,10 @@ def genome_species(iso, raw):
 def gid(raw):
     """Genome-based display name for the representative."""
     return {"Hanseniaspora uvarum": "Hanseniaspora uvarum",
-            "Metschnikowia pulcherrima": "Metschnikowia cf. pulcherrima",
-            "Metschnikowia ziziphicola": "Metschnikowia cf. pulcherrima",
+            "Metschnikowia pulcherrima": "Metschnikowia pulcherrima",
+            "Metschnikowia ziziphicola": "Metschnikowia pulcherrima",
             "Pichia sp": "Pichia kluyveri", "Pichia sp.": "Pichia kluyveri",
-            "Rhodotorula babjevae": "Rhodotorula cf. babjevae",
+            "Rhodotorula babjevae": "Rhodotorula aff. babjevae",
             "Sporobolomyces roseus": "Sporobolomyces roseus",
             "Vishniacozyma carnescens": "Vishniacozyma carnescens"}.get(raw, raw)
 
@@ -77,10 +76,8 @@ def order(inv):
     return inv.sort_values(["_r", "isolate"]).reset_index(drop=True)
 
 
-def chips(ax, ys, sps, x=-0.30, w=0.05):
-    for y, sp in zip(ys, sps):
-        ax.add_patch(Rectangle((x, y - 0.42), w, 0.84, color=spc(sp),
-                     transform=ax.get_yaxis_transform(), clip_on=False, lw=0))
+def chips(ax, ys, sps, **_):
+    fs.label_chips(ax, ys, [spc(sp) for sp in sps])
 
 
 def ylabels(inv):
@@ -103,7 +100,7 @@ def panel_A(ax, inv):
     for s in ax.spines.values():
         s.set_visible(False)
     chips(ax, np.arange(len(inv)), inv.sp.values, x=-0.16, w=0.03)
-    ax.set_title("Cell-wall-degrading enzymes (CAZymes)", fontsize=8, pad=4)
+    ax.set_title("Polysaccharide-degrading enzymes (CAZymes)", fontsize=8, pad=4)
     cb = plt.colorbar(im, ax=ax, fraction=0.045, pad=0.03)
     cb.set_label("gene count", fontsize=6); cb.ax.tick_params(labelsize=6, length=2)
 
@@ -123,14 +120,14 @@ def panel_B(ax, sec, inv):
                                          fontsize=6.5)
     ax.set_ylim(len(inv) - 0.5, -0.5)
     ax.set_xlim(0, 265)
-    ax.set_xlabel("proteases (MEROPS)", fontsize=7)
+    ax.set_xlabel("proteases", fontsize=7)
     ax.tick_params(axis="y", length=0, pad=8)
     chips(ax, y, inv.sp.values, x=-0.16, w=0.03)
-    ax.set_title("Protease arsenal: secreted of total", fontsize=8, pad=4)
+    ax.set_title("Total and secreted proteases", fontsize=8, pad=4)
     h = [Rectangle((0, 0), 1, 1, color="#777", alpha=0.28),
          Rectangle((0, 0), 1, 1, color="#777")]
-    ax.legend(h, ["total", "secreted (SignalP)"], loc="upper right",
-              bbox_to_anchor=(1.0, 1.13), frameon=False, ncol=2,
+    ax.legend(h, ["total", "secreted"], loc="upper center",
+              bbox_to_anchor=(0.5, -0.17), frameon=False, ncol=2,
               fontsize=6, handlelength=1.1, handletextpad=0.4, columnspacing=1.0)
 
 
@@ -145,11 +142,11 @@ def panel_C(ax, inv):
     ax.set_yticks(y); ax.set_yticklabels([r.isolate for _, r in inv.iterrows()],
                                          fontsize=6.5)
     ax.set_ylim(len(inv) - 0.5, -0.5)
-    ax.set_xlabel("antiSMASH clusters", fontsize=7)
+    ax.set_xlabel("Biosynthetic gene clusters", fontsize=7)
     ax.tick_params(axis="y", length=0, pad=8)
     chips(ax, y, inv.sp.values, x=-0.16, w=0.03)
-    ax.set_title("Secondary-metabolite clusters", fontsize=8, pad=4)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=4, frameon=False,
+    ax.set_title("Biosynthetic gene clusters", fontsize=8, pad=4)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=4, frameon=False,
               fontsize=5.8, handlelength=1, handletextpad=0.4, columnspacing=1.0)
     for sp in ("top", "right", "left"):
         ax.spines[sp].set_visible(False)
@@ -172,7 +169,7 @@ def panel_D(ax):
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     ax.text(0.5, -0.42, "KT395 present in all 4 P. kluyveri (96% id, full-length);\n"
-            "absent in all 50 other isolates (only GH18-domain cross-hits)",
+            "absent in all 51 other isolates (only GH18-domain cross-hits)",
             transform=ax.transAxes, ha="center", va="top", fontsize=5.6,
             color=fs.MUTED, style="italic")
 
@@ -186,7 +183,8 @@ def _within_rows():
 
 
 def panel_E(ax):
-    """Within-genus phenotype: %MI per pathogen. Botrytis varies, Fusarium conserved."""
+    """Within-genus phenotype: %MI per pathogen. Botrytis varies in both contrasts;
+    F. graminearum also varies across the Rhodotorula pair, so only F. oxysporum is conserved."""
     ph = pd.read_csv(f"{DATA}/phenotype_matrix.csv").set_index("isolate")
     y = 0; yt = []; yl = []; gsep = []
     h = 0.26
@@ -198,31 +196,33 @@ def panel_E(ax):
                 v = ph.loc[iso, col]
                 ax.barh(y + (1 - k) * h, v, height=h, color=fs.PATHO_COL[pth], zorder=3,
                         label=fs.patho_it(pth) if (gi == 0 and iso == isos[0]) else None)
-            yt.append(y); yl.append(iso + (" ◄" if iso == antag else ""))
+            yt.append(y); yl.append(iso)
             y += 1
     ax.set_yticks(yt); ax.set_yticklabels(yl, fontsize=6.5)
     ax.set_ylim(y - 0.5, -0.5)
-    ax.set_xlabel("%MI (dual culture)", fontsize=7)
-    ax.set_title("Within-genus phenotype: $\\it{Botrytis}$ varies", fontsize=8, pad=4)
+    ax.set_xlabel("%MI", fontsize=7)
+    ax.set_title("Antagonism", fontsize=7, pad=4)
     ax.axvline(0, color="#999", lw=0.5)
     for s in gsep:
         ax.axhline(s, color="#bbb", lw=0.6, ls=(0, (3, 2)))
-    ax.legend(loc="lower right", frameon=False, fontsize=6, handlelength=1,
-              handletextpad=0.4)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.17), frameon=False,
+              fontsize=6, handlelength=1, handletextpad=0.4, ncol=1)
     ax.spines["left"].set_visible(False)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.tick_params(axis="y", length=0)
-    for i, (iso, palkey, _) in enumerate(_within_rows()):
-        ax.add_patch(Rectangle((-0.135, i - 0.42), 0.03, 0.84, color=spc(palkey),
-                     transform=ax.get_yaxis_transform(), clip_on=False, lw=0))
+    rows = _within_rows()
+    fs.label_chips(ax, yt, [spc(r[1]) for r in rows])
 
 
-def panel_F(ax):
-    """Matched gene content is flat within each genus (deviation from genus mean)."""
-    rc = pd.read_csv(f"{DATA}/comparative_Rhodotorula.csv").set_index("isolate")
-    hc = pd.read_csv(f"{DATA}/comparative_Hanseniaspora.csv").set_index("isolate")
-    comp = pd.concat([rc, hc])
+def panel_F(ax, cax):
+    """Matched gene content for the panel-E rows (no labels: shares E's rows)."""
+    inv = pd.read_csv(f"{DATA}/mining_gene_inventory.csv").set_index("isolate")
+    sec = pd.read_csv(f"{DATA}/secretome_inventory.csv").set_index("isolate")
+    comp = pd.DataFrame({"n_cazyme": inv["n_cazyme"],
+                         "prot_tot": sec["MEROPS_protease | total"],
+                         "prot_sec": sec["MEROPS_protease | secr"],
+                         "bgc": inv["n_SM_clusters"]})
     rows = _within_rows()
     isos = [r[0] for r in rows]
     cols = [m[1] for m in GENE_METRICS]
@@ -232,32 +232,32 @@ def panel_F(ax):
     for a, b in [(0, n_rho), (n_rho, len(isos))]:
         for j in range(M.shape[1]):
             blk = M[a:b, j]; mu = blk.mean()
-            Z[a:b, j] = 0 if mu == 0 else np.abs(blk - mu) / mu
+            dev = np.abs(blk - mu)
+            # a difference of one gene is within annotation noise: left unshaded (as Fig S2)
+            Z[a:b, j] = 0 if mu == 0 else np.where(dev <= 1, 0.0, dev / mu)
     im = ax.imshow(Z, aspect="auto", cmap="Purples", vmin=0, vmax=0.30)
+    ax.set_ylim(len(isos) - 0.5, -0.5)
     ax.set_xticks(range(len(cols)))
-    ax.set_xticklabels([m[0] for m in GENE_METRICS], fontsize=6)
-    ax.set_yticks(range(len(isos)))
-    ax.set_yticklabels([r[0] + (" ◄" if r[2] else "") for r in rows], fontsize=6.5)
+    ax.set_xticklabels([m[0] for m in GENE_METRICS], fontsize=6, rotation=30, ha="right")
+    ax.set_yticks([])
     for yi in range(len(isos)):
         for xi in range(len(cols)):
             ax.text(xi, yi, f"{M[yi,xi]:.0f}", ha="center", va="center", fontsize=6,
-                    color=fs.INK)
-        ax.add_patch(Rectangle((-0.14, yi - 0.42), 0.03, 0.84, color=spc(rows[yi][1]),
-                     transform=ax.get_yaxis_transform(), clip_on=False, lw=0))
-    ax.axhline(n_rho - 0.5, color="#333", lw=1.2)
-    ax.tick_params(length=0, pad=6)
-    for s in ax.spines.values():
-        s.set_visible(False)
-    ax.set_title("Matched gene content is flat", fontsize=8, pad=4)
-    cb = plt.colorbar(im, ax=ax, fraction=0.045, pad=0.03, ticks=[0, 0.15, 0.30])
-    cb.set_label("deviation from\ngenus mean", fontsize=5.5)
+                    color="white" if Z[yi, xi] > 0.18 else fs.INK)
+    ax.axhline(n_rho - 0.5, color="#bbb", lw=0.6, ls=(0, (3, 2)))
+    ax.tick_params(length=0)
+    for s_ in ax.spines.values():
+        s_.set_visible(False)
+    ax.set_title("Gene count", fontsize=7, pad=4)
+    cb = plt.colorbar(im, cax=cax, ticks=[0, 0.15, 0.30])
+    cb.set_label("deviation from genus mean", fontsize=5.5)
     cb.ax.set_yticklabels(["0", "15%", "30%"]); cb.ax.tick_params(labelsize=5.5, length=2)
 
 
 SP_DISPLAY = {"Hanseniaspora uvarum": "Hanseniaspora uvarum",
-              "Metschnikowia sp.": "Metschnikowia cf. pulcherrima",
+              "Metschnikowia sp.": "Metschnikowia pulcherrima",
               "Pichia sp.": "Pichia kluyveri",
-              "Rhodotorula babjevae": "Rhodotorula cf. babjevae",
+              "Rhodotorula babjevae": "Rhodotorula aff. babjevae",
               "Sporobolomyces roseus": "Sporobolomyces roseus",
               "Vishniacozyma carnescens": "Vishniacozyma carnescens"}
 
@@ -278,33 +278,30 @@ def main():
     inv = order(pd.read_csv(f"{DATA}/mining_gene_inventory.csv"))
     sec = pd.read_csv(f"{DATA}/secretome_inventory.csv")
 
-    fig = plt.figure(figsize=(7.6, 10.4))
-    # Row 1 (tall, 13-genome inventory): A CAZymes | B proteases
-    axA = fig.add_axes([0.14, 0.74, 0.32, 0.22])
-    axB = fig.add_axes([0.60, 0.74, 0.33, 0.22])
-    # species legend in the clear right-hand band below panel D
-    axLeg = fig.add_axes([0.54, 0.30, 0.44, 0.07])
-    # Row 2: C secondary-metabolite clusters | D KT395 killer toxin
-    axC = fig.add_axes([0.14, 0.40, 0.30, 0.22])
-    axD = fig.add_axes([0.62, 0.45, 0.30, 0.15])
-    # Row 3 (within-genus natural experiment): E phenotype | F flat gene content
-    axE = fig.add_axes([0.16, 0.055, 0.28, 0.20])
-    axF = fig.add_axes([0.64, 0.055, 0.26, 0.20])
+    fig = plt.figure(figsize=(7.6, 8.6))
+    # Row 1 (13 mined genomes): A CAZymes | B proteases
+    axA = fig.add_axes([0.14, 0.62, 0.30, 0.32])
+    axB = fig.add_axes([0.62, 0.62, 0.33, 0.32])
+    # Row 2: C biosynthetic gene clusters | D within-genus contrasts (E bars + F heatmap)
+    TOP2 = 0.44
+    axC = fig.add_axes([0.14, 0.10, 0.30, TOP2 - 0.10])
+    axE = fig.add_axes([0.60, 0.21, 0.15, TOP2 - 0.21])
+    axF = fig.add_axes([0.765, 0.21, 0.16, TOP2 - 0.21])
+    cax = fig.add_axes([0.94, 0.21, 0.012, TOP2 - 0.21])
+    axLeg = fig.add_axes([0.52, 0.0, 0.46, 0.07])
 
     panel_A(axA, inv)
     panel_B(axB, sec, inv)
-    species_legend(axLeg, inv)
     panel_C(axC, inv)
-    panel_D(axD)
     panel_E(axE)
-    panel_F(axF)
+    panel_F(axF, cax)
+    species_legend(axLeg, inv)
+    fig.text(0.765, TOP2 + 0.045, "Within-genus contrasts", ha="center", fontsize=8)
 
     fs.panel_letter(axA, "A", x=-0.20, y=1.06)
     fs.panel_letter(axB, "B", x=-0.14, y=1.06)
-    fs.panel_letter(axC, "C", x=-0.22, y=1.06)
-    fs.panel_letter(axD, "D", x=-0.22, y=1.10)
-    fs.panel_letter(axE, "E", x=-0.28, y=1.08)
-    fs.panel_letter(axF, "F", x=-0.20, y=1.08)
+    fig.text(0.02, TOP2 + 0.03, "C", fontsize=12, fontweight="bold", va="bottom", ha="left")
+    fig.text(0.51, TOP2 + 0.03, "D", fontsize=12, fontweight="bold", va="bottom", ha="left")
 
     fs.save(fig, f"{OUT}/Fig4_genomic")
     print("wrote Fig4_genomic; genomes:", list(inv.isolate))

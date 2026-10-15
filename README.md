@@ -11,7 +11,7 @@ it contains **all of the code** used to produce the results, tables and figures 
 the manuscript. Software packages and versions are described in the manuscript
 Methods; the key ones are also summarised below.
 
-- **Manuscript:** Darko & Price, *UK vineyard yeasts as biological control agents*
+- **Manuscript:** Darko & Price, *Genome mining of UK vineyard yeasts partly assigns biocontrol mechanism between genera but does not predict antagonist strength within a species*
   (submitted to *Access Microbiology*).
 - **Sequence data:** NCBI BioProject **PRJNA1502812** (55 genome assemblies + raw
   Illumina reads). Genome accessions will be added on release.
@@ -47,16 +47,16 @@ and figures.
 | `phylo_refs/` | Reference-genome BUSCO + supermatrix phylogeny (`genomes.tsv` = reference set). |
 | `reassembly/` | Ascomycete re-assembly: k-mer/GenomeScope2 heterozygosity analysis and Platanus-allee haplotype-aware assembly. |
 | `mapping_qc/` | fastp QC + read-mapping back to assemblies to diagnose the ascomycete assembly failure. |
-| `species_id/` | Genome-based species identification (fastANI vs type genomes + LSU D1/D2 barcode BLAST). |
-| `global_context/` | Placing the UK isolates against global *Hanseniaspora uvarum* / *Rhodotorula* references (ANI + tree). |
+| `species_id/` | Genome-based species identification (fastANI vs type genomes + LSU D1/D2 barcode BLAST), and TY26/TY30 against the *Metschnikowia pulcherrima* clade (`02_metsch_clade.sh`, accessions in `metsch_clade/acc.txt`). |
+| `global_context/` | Placing the UK isolates against global *Hanseniaspora uvarum* / *Rhodotorula* references (ANI + tree). Re-deposits of the same strain are listed once, per `meta/duplicate_assemblies.tsv`. |
 | `mining/` | Genome annotation (funannotate) and biocontrol-gene mining: CAZymes (dbCAN), secondary-metabolite clusters (antiSMASH), SignalP secretome, killer-toxin tblastn (`killer_toxins.faa` = curated panel). |
 | `interpro/` | InterProScan functional re-annotation of the mined genomes. |
-| `allelic/` | Within-species comparative genomics: OrthoFinder, within-clade ANI, and the UY1/TY27 clonal-pair variant analysis (dnadiff). |
+| `allelic/` | Within-species comparative genomics: OrthoFinder, within-clade ANI, eight-isolate *Rhodotorula* ANI (`09`), read-based variant calling within the two near-clonal *Rhodotorula* groups (`06`, `07`; BWA + bcftools) and accessory genes (`08`; CD-HIT + miniprot). The assembly-based dnadiff comparison (`03`, `05`) was superseded by the read-based calls. |
 
 Helper modules: `scripts/_palette.py` (shared species→colour map for every figure),
 `scripts/_figstyle.py` (matplotlib style), `scripts/_mk_*_sheet.py` (spreadsheet
-builders). `scripts/30`–`34` are NCBI data-deposition helpers (assembly cleaning and
-metadata generation), not analyses.
+builders). `scripts/30_ncbi_upload.py` and `31`–`34` are NCBI data-deposition helpers (assembly
+cleaning and metadata generation), not analyses.
 
 ## Software and environments
 
@@ -69,7 +69,9 @@ on the cluster. Principal software (full version list in the manuscript Methods)
 | `funannotate` | funannotate 1.8.17 (gene prediction + annotation), openpyxl |
 | `busco` / `BUSCO_phylogenomics` | BUSCO (`fungi_odb10`), supermatrix building; ML tree with IQ-TREE 2 |
 | `fastani` | fastANI (genome-based species ID and within-clade ANI) |
-| `mummer` | MUMmer `dnadiff` (clonal-pair variant calling) |
+| `variant_calling` | BWA, SAMtools, bcftools (read-based clonal variants) |
+| `cdhit`, `evm` | CD-HIT, miniprot (accessory genes) |
+| `mummer` | MUMmer `dnadiff` (initial clonal-pair comparison, superseded) |
 | `orthofinder` | OrthoFinder (orthogroup inference) |
 | `run_dbcan` | dbCAN 5.0 (CAZyme annotation) |
 | `antismash` | antiSMASH 8.0.1 (secondary-metabolite clusters) |
@@ -89,6 +91,8 @@ conda run -n funannotate  python scripts/00_dump_xlsx.py       # phenotype sheet
 conda run -n data_science python scripts/01_build_master.py    # isolate master table
 conda run -n data_science python scripts/02_stats_figures.py   # phenotype stats
 # ... 03–18: QC, phylogeny, species ID, mining, secretome, comparative genomics ...
+# 38_clonal_reads.py (read-validated clonal variants) runs before 16–18;
+# 35–37: lineage signal, accessory genes, prioritisation-score sensitivity
 conda run -n data_science python scripts/19_fig1_screen.py     # manuscript figures
 # ... 20–28: remaining main + supplementary figures ...
 conda run -n data_science python scripts/27_supp_tables.py     # supplementary tables

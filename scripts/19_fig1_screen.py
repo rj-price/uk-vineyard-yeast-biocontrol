@@ -129,24 +129,18 @@ def panel_B(ax, order_iso, gsp):
     iso = [i for i in order_iso if i in m.index]
     M = m.loc[iso, list(cols.values())].astype(float)
     im = ax.imshow(M.values, aspect="auto", cmap=fs.MI_CMAP, vmin=0, vmax=65)
-    # species colour sidebar (retains species identity now that the qualitative
-    # panel A, which carried the sidebar, has been dropped)
-    for y, i in enumerate(iso):
-        ax.add_patch(Rectangle((-1.6, y - 0.5), 0.7, 1,
-                               color=spc(norm_species(gsp.get(i, ""))), lw=0,
-                               clip_on=False))
     ax.set_xticks(range(3))
-    ax.set_xticklabels([fs.patho_it(p) for p in cols], rotation=30, ha="right", fontsize=7)
+    ax.set_xticklabels([fs.patho_it(p) for p in cols], rotation=30, ha="right", fontsize=8)
     ax.set_yticks(range(len(iso)))
-    ax.set_yticklabels(iso, fontsize=5)
-    ax.set_xlim(-1.7, 2.5)
+    ax.set_yticklabels(iso, fontsize=6.5)
+    ax.set_xlim(-0.5, 2.5)
     # annotate values
     for y in range(len(iso)):
         for x in range(3):
             v = M.values[y, x]
-            ax.text(x, y, f"{v:.0f}", ha="center", va="center", fontsize=4.5,
+            ax.text(x, y, f"{v:.0f}", ha="center", va="center", fontsize=6,
                     color="white" if v > 38 else fs.INK)
-    ax.set_title("Dual-plate %MI (25 antagonists)", fontsize=8, pad=6)
+    ax.set_title("Dual-plate %MI", fontsize=8, pad=8)
     ax.tick_params(length=0)
     for s in ax.spines.values():
         s.set_visible(False)
@@ -156,6 +150,9 @@ def panel_B(ax, order_iso, gsp):
     return iso
 
 
+ACTIVE = 5.0
+
+
 def panel_C(ax_bar, ax_mat):
     """Classic UpSet: vertical count bars on top (ax_bar), membership dot-matrix
     below (ax_mat) with pathogen rows labelled on the left."""
@@ -163,7 +160,9 @@ def panel_C(ax_bar, ax_mat):
     P = ["B. cinerea", "F. oxysporum", "F. graminearum"]
     col = {"B. cinerea": "MI_Bcinerea", "F. oxysporum": "MI_Foxysporum",
            "F. graminearum": "MI_Fgraminearum"}
-    act = {p: set(m.index[m[col[p]] > 0]) for p in P}
+    # "active" = mean %MI >= ACTIVE (5 %MI is ~4 mm on the 85 mm control colony,
+    # above the 1-2 mm ruler/replicate scatter seen in the controls)
+    act = {p: set(m.index[m[col[p]] >= ACTIVE]) for p in P}
     from itertools import combinations
     combos = []
     for k in (1, 2, 3):
@@ -185,8 +184,10 @@ def panel_C(ax_bar, ax_mat):
     ax_bar.set_xlim(-0.6, XR)
     ax_bar.set_ylim(0, max(c[1] for c in combos) * 1.18)
     ax_bar.set_xticks([])
+    from matplotlib.ticker import MaxNLocator
+    ax_bar.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax_bar.tick_params(labelsize=6, length=2)
-    ax_bar.set_title("Pathogen specificity (taken forward)", fontsize=8, pad=4)
+    ax_bar.set_title("Pathogen specificity", fontsize=8, pad=8)
 
     # ---- membership matrix (pathogen labels on the RIGHT to clear panel B) ----
     for yi, p in enumerate(P):
@@ -233,20 +234,22 @@ def main():
     gsp = genome_species()
 
     # Two-panel figure: (A) quantitative %MI heatmap for the antagonists advanced
-    # from the screen; (B) UpSet pathogen-specificity. The qualitative preliminary
-    # screen (former panel A) is dropped per the revision.
-    fig = plt.figure(figsize=(7.2, 6.4))
-    axA = fig.add_axes([0.16, 0.08, 0.20, 0.84])
-    axC_bar = fig.add_axes([0.60, 0.62, 0.36, 0.30])
-    axC_mat = fig.add_axes([0.60, 0.45, 0.36, 0.14])
-    axLeg = fig.add_axes([0.58, 0.08, 0.40, 0.30])
+    # from the screen; (B) UpSet pathogen-specificity. No species colouring: identity
+    # is introduced in Fig 2 (JP comment, revision round 2).
+    fig = plt.figure(figsize=(7.2, 5.6))
+    # both panels share the same top edge (0.92) so titles and letters line up
+    TOP = 0.92
+    axA = fig.add_axes([0.10, 0.10, 0.30, TOP - 0.10])
+    axC_bar = fig.add_axes([0.58, TOP - 0.40, 0.38, 0.40])
+    axC_mat = fig.add_axes([0.58, TOP - 0.62, 0.38, 0.18])
 
     panel_B(axA, fwd, gsp)
     panel_C(axC_bar, axC_mat)
-    species_legend(axLeg, d)
 
-    fs.panel_letter(axA, "A", x=-0.70, y=1.02)
-    fs.panel_letter(axC_bar, "B", x=-0.10, y=1.06)
+    # letters placed in figure coordinates so they sit on one baseline
+    for x, letter in ((0.02, "A"), (0.50, "B")):
+        fig.text(x, TOP + 0.035, letter, fontsize=12, fontweight="bold",
+                 va="bottom", ha="left")
 
     fs.save(fig, f"{OUT}/Fig1_screen")
     print("wrote", f"{OUT}/Fig1_screen.svg/.png")

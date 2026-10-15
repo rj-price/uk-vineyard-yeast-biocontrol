@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """
-24_fig6_invivo.py  ->  figures/manuscript/Fig6_labtofruit.{svg,png}
-Manuscript Figure 6 — from lab to fruit: the in vitro -> in vivo gap.
-(A) exploratory detached grape-berry assay, one representative berry per condition
-    (10 dpi). Water- and yeast-only berries stayed infection-free (yeast is not itself
-    pathogenic); both B. cinerea groups developed visible grey mould. n = 1 per group,
-    qualitative (no quantitative disease scoring) -> exploratory, hence the honest gap.
-(B) genome-characterised candidate-prioritisation dashboard: top isolates by a composite
-    mechanism score, showing pathogen suppression (%MI) and mechanism profile, coloured
-    by species. Basis for the rational, mechanism-informed selection the grant proposes.
+24_fig6_invivo.py  ->  figures/manuscript/Fig6_prioritisation.{svg,png}
+Manuscript Figure 6 — genome-characterised candidate prioritisation.
+Top isolates by a composite score over measured phenotypes, showing pathogen
+suppression (%MI) and mechanism profile, coloured by species.
+
+The exploratory detached-berry panel that previously formed panel A was dropped from
+the manuscript (JP comment, Sep 2026): n = 1 berry per condition with no disease
+scoring cannot support a translational claim. The berry photographs remain in
+analysis/data/invivo/ and the panel_A code below is retained but unused.
 """
 import os, sys
 import numpy as np, pandas as pd
@@ -63,8 +63,8 @@ def panel_A(axes, brack_ax):
 
 PATH_COLS = [("MI_Bcinerea", "$\\it{B.c.}$"), ("MI_Foxysporum", "$\\it{F.o.}$"),
              ("MI_Fgraminearum", "$\\it{F.g.}$")]
-MECH_COLS = [("VOC_mean", "VOC"), ("Fe_comp_mean", "Fe comp."),
-             ("enzyme_breadth", "enzymes")]
+MECH_COLS = [("VOC_mean", "VOC"), ("Fe_comp_mean", "FeCl$_3$"),
+             ("enzyme_breadth", "Enzymes")]
 
 
 def panel_B(ax, cax):
@@ -73,12 +73,13 @@ def panel_B(ax, cax):
     cols = PATH_COLS + MECH_COLS
     keys = [c[0] for c in cols]
     M = d[keys].astype(float).values
-    # per-column min-max normalisation (mixed units) -> relative strength profile
+    # each column scaled to its maximum (mixed units), anchored at zero so that a
+    # non-zero value never shades as zero (min-max made TY26's 34 %MI look blank)
     Z = np.zeros_like(M)
     for j in range(M.shape[1]):
         col = M[:, j]
-        rng = np.nanmax(col) - np.nanmin(col)
-        Z[:, j] = 0.0 if rng == 0 else (col - np.nanmin(col)) / rng
+        mx = np.nanmax(col)
+        Z[:, j] = 0.0 if not mx else np.clip(col, 0, None) / mx
     im = ax.imshow(Z, aspect="auto", cmap="Purples", vmin=0, vmax=1)
     im.cmap.set_bad("#f0f0f0")
 
@@ -100,9 +101,9 @@ def panel_B(ax, cax):
                      transform=ax.get_yaxis_transform(), clip_on=False, lw=0))
     # separator between pathogen-suppression block and mechanism block
     ax.axvline(len(PATH_COLS) - 0.5, color="white", lw=2.4)
-    ax.text((len(PATH_COLS) - 1) / 2, -0.9, "pathogen %MI", ha="center", fontsize=6.5,
+    ax.text((len(PATH_COLS) - 1) / 2, -1.1, "Pathogen %MI", ha="center", fontsize=6.5,
             color=fs.MUTED, style="italic")
-    ax.text(len(PATH_COLS) + (len(MECH_COLS) - 1) / 2, -0.9, "mechanism profile",
+    ax.text(len(PATH_COLS) + (len(MECH_COLS) - 1) / 2, -1.1, "Mechanism profile",
             ha="center", fontsize=6.5, color=fs.MUTED, style="italic")
     ax.tick_params(length=0)
     for s in ax.spines.values():
@@ -113,11 +114,11 @@ def panel_B(ax, cax):
         ax.text(len(cols) - 0.3, yi, f"{d.score[yi]:.1f}", va="center", ha="left",
                 fontsize=6.5, fontweight="bold", color=fs.INK,
                 transform=ax.transData, clip_on=False)
-    ax.text(len(cols) - 0.3, -0.9, "score", ha="left", fontsize=6.5, color=fs.MUTED,
+    ax.text(len(cols) - 0.3, -1.1, "Score", ha="left", fontsize=6.5, color=fs.MUTED,
             style="italic")
 
     cb = plt.colorbar(im, cax=cax, ticks=[0, 1])
-    cb.set_label("relative\n(per column)", fontsize=5.5)
+    cb.set_label("fraction of\ncolumn maximum", fontsize=5.5)
     cb.ax.set_yticklabels(["min", "max"]); cb.ax.tick_params(labelsize=5.5, length=2)
 
     # species legend (only the species present among the top candidates)
@@ -125,40 +126,24 @@ def panel_B(ax, cax):
     seen = list(dict.fromkeys(d.species))
     handles = [Line2D([0], [0], marker="s", ls="", ms=6, color=spc(s), label=it(s))
                for s in seen]
-    ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.0, -0.14),
-              frameon=False, fontsize=6, ncol=2, handletextpad=0.3, columnspacing=1.0)
+    ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(0.0, -0.10),
+              frameon=False, fontsize=6, ncol=4, handletextpad=0.3, columnspacing=1.0)
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     fs.apply()
-    fig = plt.figure(figsize=(7.2, 6.6))
+    fig = plt.figure(figsize=(7.2, 4.0))
 
-    # Panel A: four berry photos in a row (top), with a grouping-bracket strip above
-    brack = fig.add_axes([0.06, 0.905, 0.90, 0.05])
-    imgw, gap, x0 = 0.205, 0.03, 0.06
-    axesA = []
-    for i in range(4):
-        axesA.append(fig.add_axes([x0 + i * (imgw + gap), 0.60, imgw, 0.29]))
-    panel_A(axesA, brack)
-
-    # Panel B: prioritisation dashboard (bottom)
-    axB = fig.add_axes([0.16, 0.14, 0.60, 0.30])
-    cax = fig.add_axes([0.86, 0.20, 0.018, 0.18])
+    # single-panel prioritisation dashboard
+    axB = fig.add_axes([0.16, 0.28, 0.60, 0.56])
+    cax = fig.add_axes([0.86, 0.38, 0.018, 0.34])
     panel_B(axB, cax)
 
-    fig.text(0.02, 0.955, "A", fontsize=12, fontweight="bold", va="top")
-    fig.text(0.02, 0.47, "B", fontsize=12, fontweight="bold", va="top")
+    # the composite-score definition lives in the figure legend, not the image
 
-    fig.text(0.06, 0.51,
-             "Exploratory assay — one representative berry per condition, "
-             "no quantitative disease scoring.\nStrong in vitro antagonism did not "
-             "translate to berry protection: the in vitro→in vivo gap this project "
-             "is designed to close.",
-             fontsize=6.2, color=fs.MUTED, va="top")
-
-    fs.save(fig, f"{OUT}/Fig6_labtofruit")
-    print("wrote Fig6_labtofruit")
+    fs.save(fig, f"{OUT}/Fig6_prioritisation")
+    print("wrote Fig6_prioritisation")
 
 
 if __name__ == "__main__":

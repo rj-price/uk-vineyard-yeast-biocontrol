@@ -54,6 +54,40 @@ def panel_letter(ax, letter, x=-0.06, y=1.04):
             va="bottom", ha="right")
 
 def save(fig, path_noext):
+    _draw_label_chips(fig)
     fig.savefig(f"{path_noext}.svg", bbox_inches="tight")
     fig.savefig(f"{path_noext}.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
+
+
+_PENDING_CHIPS = []
+
+
+def label_chips(ax, ys, colors, w_pt=4.5, gap_pt=2.5):
+    """Queue a colour chip just LEFT of each y-tick label. Positions are measured from the
+    rendered labels at save time, so chips never overlap names whatever the panel width."""
+    _PENDING_CHIPS.append((ax, list(ys), list(colors), w_pt, gap_pt))
+
+
+def _draw_label_chips(fig):
+    from matplotlib.patches import Rectangle
+    fig.canvas.draw()
+    r = fig.canvas.get_renderer()
+    for ax, ys, colors, w_pt, gap_pt in [c for c in _PENDING_CHIPS if c[0].figure is fig]:
+        labs = {round(t.get_position()[1], 6): t for t in ax.get_yticklabels() if t.get_text()}
+        px = fig.dpi / 72.0
+        inv = ax.transAxes.inverted()
+        # one aligned column per panel: left of the widest label
+        hits = [labs.get(round(float(y), 6)) for y in ys]
+        x0s = [t.get_window_extent(r).x0 for t in hits if t is not None]
+        if not x0s:
+            continue
+        x0_disp = min(x0s) - gap_pt * px
+        for y, col, t in zip(ys, colors, hits):
+            if t is None:
+                continue
+            xa1 = inv.transform((x0_disp, 0))[0]
+            xa0 = inv.transform((x0_disp - w_pt * px, 0))[0]
+            ax.add_patch(Rectangle((xa0, y - 0.42), xa1 - xa0, 0.84, color=col,
+                                   transform=ax.get_yaxis_transform(), clip_on=False, lw=0))
+    _PENDING_CHIPS[:] = [c for c in _PENDING_CHIPS if c[0].figure is not fig]

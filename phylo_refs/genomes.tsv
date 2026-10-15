@@ -2,17 +2,13 @@ name	assembly
 UY1	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_1_EKDN240060028-1A_22FLL7LT4_L6_scaffolds.fasta
 TY6	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_10_EKDN240060037-1A_22FLL7LT4_L6_scaffolds.fasta
 TY7	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_11_EKDN240060038-1A_22F7GNLT4_L1_scaffolds.fasta
-TY8	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_12_EKDN240060039-1A_22FLL7LT4_L6_scaffolds.fasta
-TY9	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_13_EKDN240060040-1A_22FLL7LT4_L6_scaffolds.fasta
 TY10	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_14_EKDN240060041-1A_22FLL7LT4_L6_scaffolds.fasta
 TY11	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_15_EKDN240060042-1A_22FLL7LT4_L6_scaffolds.fasta
-TY12	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_16_EKDN240060043-1A_22FLL7LT4_L6_scaffolds.fasta
 TY13	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_17_EKDN240060044-1A_22FLL7LT4_L6_scaffolds.fasta
 TY14	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_18_EKDN240060045-1A_22FLL7LT4_L6_scaffolds.fasta
 TY15	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_19_EKDN240060046-1A_22F7GNLT4_L1_scaffolds.fasta
 UY2	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_2_EKDN240060029-1A_22FLL7LT4_L6_scaffolds.fasta
 TY16	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_20_EKDN240060047-1A_22F7GNLT4_L1_scaffolds.fasta
-TY17	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_21_EKDN240060048-1A_22FLL7LT4_L6_scaffolds.fasta
 UY3	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_3_EKDN240060030-1A_22FLL7LT4_L6_scaffolds.fasta
 UY4	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_4_EKDN240060031-1A_22FLL7LT4_L6_scaffolds.fasta
 TY1	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y1_5_EKDN240060032-1A_22FLL7LT4_L6_scaffolds.fasta
@@ -37,7 +33,6 @@ TY20	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_3_EKDN2400
 TY21	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_4_EKDN240060052-1A_22FLL7LT4_L6_scaffolds.fasta
 TY22	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_5_EKDN240060053-1A_22FLL7LT4_L6_scaffolds.fasta
 TY23	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_6_EKDN240060054-1A_22FLL7LT4_L6_scaffolds.fasta
-TY24	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_7_EKDN240060055-1A_22FLL7LT4_L6_scaffolds.fasta
 TY25	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_8_EKDN240060056-1A_22FLL7LT4_L6_scaffolds.fasta
 TY26	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/genomics/Y2_9_EKDN240060057-1A_22F7GNLT4_L1_scaffolds.fasta
 RY9	/mnt/shared/scratch/jnprice/private/biocontrol_yeast/analysis/final_assemblies/ascomycetes_platanus/Y3_1.fasta

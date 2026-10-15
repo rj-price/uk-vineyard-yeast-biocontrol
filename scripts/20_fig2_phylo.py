@@ -3,11 +3,11 @@
 20_fig2_phylo.py  ->  figures/manuscript/Fig2_phylogenomics.{svg,png}
 Manuscript Figure 2 — phylogenomics & genome-based species identity.
 (A) rectangular cladogram (BUSCO supermatrix, 55 isolates + type-strain references
-    + Fusarium outgroup), tips coloured by genome-ANI species, clades bracketed.
+    rooted on the Ascomycota/Basidiomycota split), tips coloured by genome-ANI species, clades bracketed.
 (B) ANI heatmap for the taxonomically ambiguous genera (isolate x reference),
     yellow->red about the 95% species threshold.
 """
-import os, re, sys
+import glob, os, re, sys
 import numpy as np, pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
@@ -22,8 +22,8 @@ DATA = f"{PROJ}/analysis/data"
 SID = f"{PROJ}/analysis/species_id"
 TREE = f"{PROJ}/analysis/phylo_refs/phylo_out/supermatrix/refs_tree.contree"
 OUT = f"{PROJ}/analysis/figures/manuscript"
-# sequenced but never screened (all Sporobolomyces, unphenotyped) -> excluded (56/55 study)
-DROP = {"TY8", "TY9", "TY12", "TY17", "TY24"}
+# study isolates = the 56 screened (55 sequenced)
+SCREENED = set(pd.read_csv(f"{DATA}/prelim_screen.csv").isolate)
 
 
 def norm_species(s):
@@ -72,29 +72,64 @@ def layout_cladogram(tree):
     return xx, yy, leaves
 
 
+def _ref_meta():
+    """Download stem -> (NCBI species, strain, is type material), from Table S3's source."""
+    meta = pd.read_csv("analysis/species_id/ref_metadata.tsv", sep="\t", header=None,
+                       names=["acc", "org", "strain", "type", "level"], keep_default_na=False)
+    meta = meta.set_index("acc")
+    out = {}
+    for f in glob.glob("analysis/species_id/refs/*.fna"):
+        stem, acc = os.path.basename(f)[:-4].split("__")
+        r = meta.loc[acc]
+        out[stem] = (" ".join(r.org.split()[:2]), r.strain, r.type.startswith("assembly from"))
+    return out
+
+
+REF_META = _ref_meta()
+# species named by more than one reference tip get their strain added
+_dup = pd.Series([v[0] for v in REF_META.values()]).value_counts()
+_DUP_SP = set(_dup[_dup > 1].index)
+
+
 def ref_label(name):
-    """REF_Genus_species -> italic 'Genus species' with a superscript T (type strain)."""
-    sp = name.replace("REF_", "").replace("_", " ")
-    esc = sp.replace(" ", r"\ ")
-    return f"$\\it{{{esc}}}^{{\\mathrm{{T}}}}$"
+    """REF_<stem> -> italic species as NCBI now records it, strain where the species repeats,
+    and a superscript T only for assemblies NCBI flags as type material."""
+    stem = name.replace("REF_", "")
+    sp, strain, is_type = REF_META.get(stem, (stem.replace("_", " "), "", False))
+    lab = f"$\\it{{{sp.replace(' ', chr(92) + ' ')}}}$"
+    if sp in _DUP_SP:
+        lab += f" {strain}"
+    if is_type:
+        lab += "$^{\\mathrm{T}}$"
+    return lab
+
+
+BASIDIO_GENERA = ("Rhodotorula", "Rhodosporidiobolus", "Sporobolomyces", "Vishniacozyma",
+                  "Filobasidium", "Naganishia")
+
+
+def is_basidio(name, iso2sp):
+    """True for basidiomycete tips (references by name, isolates by genome species)."""
+    label = name[4:] if name.startswith("REF_") else (iso2sp.get(name) or "")
+    return label.startswith(BASIDIO_GENERA)
 
 
 def panel_A(ax, iso2sp):
     tree = Phylo.read(TREE, "newick")
-    # prune the sequenced-but-unscreened Sporobolomyces (56/55 study)
+    # keep reference tips and study isolates only
     for lf in list(tree.get_terminals()):
-        if lf.name in DROP:
+        if not lf.name.startswith(("REF_", "OUT_")) and lf.name not in SCREENED:
             tree.prune(lf)
-    # root on the Fusarium outgroup, then collapse the two near-identical F. venenatum
-    # tips (OUT_..._A/_B) to a single displayed outgroup leaf
+    # Root on the Ascomycota/Basidiomycota split. The F. venenatum tips used when the
+    # tree was inferred sit inside Ascomycota (Pezizomycotina), so rooting on them made
+    # the ascomycetes paraphyletic; they are dropped from the displayed tree instead.
     outs = [l for l in tree.get_terminals() if l.name.startswith("OUT_")]
-    if len(outs) >= 2:
-        tree.root_with_outgroup(*outs)
-        for extra in outs[1:]:
-            tree.prune(extra)
-        outs[0].name = "OUT_Fusarium_venenatum"
-    elif outs:
-        tree.root_with_outgroup(outs[0])
+    if outs:
+        tree.root_with_outgroup(*outs)   # temporary root so the phyla are clades
+        for o in outs:
+            tree.prune(o)
+    basidio = [l for l in tree.get_terminals() if is_basidio(l.name, iso2sp)]
+    tree.root_with_outgroup(*basidio)
     tree.ladderize()
     xx, yy, leaves = layout_cladogram(tree)
 
@@ -148,8 +183,14 @@ def panel_A(ax, iso2sp):
         if sp in ("Other",):
             continue
         y0, y1 = min(ys), max(ys)
-        ax.plot([xb, xb], [y0, y1], color=spc(sp), lw=2.2, solid_capstyle="round",
-                clip_on=False)
+        # break the bar where a reference tip sits inside the clade, so the bar does
+        # not run through that reference's label
+        ys_s = sorted(ys); seg = [ys_s[0]]
+        for a, b in zip(ys_s, ys_s[1:] + [None]):
+            if b is None or b - a > 1:
+                ax.plot([xb, xb], [seg[0], a], color=spc(sp), lw=2.2,
+                        solid_capstyle="round", clip_on=False)
+                seg = [b]
         ax.text(xb + 0.3, (y0 + y1) / 2, it(sp), va="center", ha="left", fontsize=5.5,
                 color=fs.INK, clip_on=False)
 
@@ -161,25 +202,31 @@ def panel_A(ax, iso2sp):
     ax.scatter([], [], s=6, facecolor="white", edgecolor="#333333", lw=0.4,
                label="UFBoot 80–95")
     ax.scatter([], [], s=13, marker="D", facecolor="white", edgecolor="#888888", lw=0.6,
-               label="reference genome$^{T}$")
+               label="reference ($^{T}$ = type)")
     ax.legend(loc="lower left", frameon=False, fontsize=5.5, handletextpad=0.3,
               bbox_to_anchor=(0.0, 0.0))
-    ax.set_title(f"BUSCO supermatrix phylogeny ({n_iso} isolates + references)",
-                 fontsize=8, pad=2)
+
 
 
 # ---------- Panel B: ANI heatmap ----------
 GENERA = {
-    "Rhodotorula cf. babjevae": ["Rhodotorula_babjevae", "Rhodotorula_graminis",
+    "Rhodotorula aff. babjevae": ["Rhodotorula_babjevae", "Rhodotorula_graminis",
                                  "Rhodotorula_kratochvilovae", "Rhodotorula_mucilaginosa",
                                  "Rhodotorula_toruloides"],
     "Sporobolomyces": ["Sporobolomyces_roseus", "Sporobolomyces_pararoseus",
                        "Sporobolomyces_salmonicolor"],
-    "Metschnikowia cf. pulcherrima": ["Metschnikowia_pulcherrima",
+    "Metschnikowia pulcherrima": ["Metschnikowia_pulcherrima",
                                       "Metschnikowia_ziziphicola_fructicola",
                                       "Metschnikowia_chrysoperlae"],
     "Pichia kluyveri": ["Pichia_kluyveri", "Pichia_fermentans", "Pichia_membranifaciens"],
+    "Hanseniaspora uvarum": ["Hanseniaspora_uvarum", "Hanseniaspora_opuntiae",
+                             "Hanseniaspora_guilliermondii"],
 }
+
+
+# Download stems that no longer match NCBI's current record (see Table S3).
+REF_LABEL = {"Metschnikowia_pulcherrima": "Metschnikowia pulcherrima NRRL Y-7111",
+             "Metschnikowia_ziziphicola_fructicola": "Metschnikowia pulcherrima FL01"}
 
 
 def panel_B(ax):
@@ -195,10 +242,11 @@ def panel_B(ax):
     a = a[a.sp.notna()]
 
     # rows: isolates from the ambiguous genera, grouped; cols: their references
-    genus_of = {"Rhodotorula cf. babjevae": lambda s: "babjevae" in str(s),
+    genus_of = {"Rhodotorula aff. babjevae": lambda s: "babjevae" in str(s),
                 "Sporobolomyces": lambda s: str(s).startswith("Sporobolomyces"),
-                "Metschnikowia cf. pulcherrima": lambda s: str(s).startswith("Metschnikowia"),
-                "Pichia kluyveri": lambda s: str(s).startswith("Pichia")}
+                "Metschnikowia pulcherrima": lambda s: str(s).startswith("Metschnikowia"),
+                "Pichia kluyveri": lambda s: str(s).startswith("Pichia"),
+                "Hanseniaspora uvarum": lambda s: str(s).startswith("Hanseniaspora")}
     cols = []
     for g, refs in GENERA.items():
         cols += refs
@@ -206,21 +254,24 @@ def panel_B(ax):
 
     order, group_of = [], []
     for g, test in genus_of.items():
-        isos = sorted(i for i in a[a.sp.map(test)].iso.unique() if i not in DROP)
+        isos = sorted((i for i in a[a.sp.map(test)].iso.unique() if i in SCREENED),
+                      key=lambda i: (re.sub(r"\d+", "", i), int(re.sub(r"\D", "", i))))
         for iso in isos:
             order.append(iso); group_of.append(g)
+    # Block-diagonal: each isolate is compared only with references of its own genus.
+    # Cross-genus values sit at fastANI's ~76 % floor and are noise, so they are masked.
+    # Within a block, a missing value means the pair fell below that floor (shown "<76").
     M = np.full((len(order), len(cols)), np.nan)
-    for ri, iso in enumerate(order):
+    inblock = np.zeros_like(M, dtype=bool)
+    for ri, (iso, g) in enumerate(zip(order, group_of)):
         sub = a[a.iso == iso]
         for ci, c in enumerate(cols):
+            if c not in GENERA[g]:
+                continue
+            inblock[ri, ci] = True
             v = sub[sub.ref == c].ani
             if len(v):
                 M[ri, ci] = v.iloc[0]
-
-    # drop reference columns with no data (e.g. distant refs below fastANI's floor)
-    keep = ~np.all(np.isnan(M), axis=0)
-    M = M[:, keep]
-    cols = [c for c, k in zip(cols, keep) if k]
 
     from matplotlib.colors import Normalize
     norm = Normalize(vmin=78, vmax=100)   # yellow (low ANI) -> red (species-level)
@@ -228,7 +279,7 @@ def panel_B(ax):
     im.cmap.set_bad("#f0f0f0")
     ax.xaxis.set_ticks_position("top")
     ax.set_xticks(range(len(cols)))
-    ax.set_xticklabels([c.replace("_", " ") for c in cols], rotation=40, ha="left",
+    ax.set_xticklabels([REF_LABEL.get(c, c.replace("_", " ")) for c in cols], rotation=40, ha="left",
                        fontsize=5.5, fontstyle="italic")
     ax.set_yticks(range(len(order)))
     ax.set_yticklabels(order, fontsize=4.8)
@@ -237,6 +288,11 @@ def panel_B(ax):
             if not np.isnan(M[ri, ci]):
                 ax.text(ci, ri, f"{M[ri,ci]:.0f}", ha="center", va="center", fontsize=4,
                         color="white" if M[ri, ci] >= 95 else fs.INK)
+            elif inblock[ri, ci]:
+                ax.add_patch(plt.Rectangle((ci - 0.5, ri - 0.5), 1, 1, color="#fbf6e6",
+                                           lw=0, zorder=1))
+                ax.text(ci, ri, "<76", ha="center", va="center", fontsize=3.4,
+                        color=fs.MUTED, zorder=2)
     # genus separators
     yb = 0
     for g in dict.fromkeys(group_of):
@@ -295,9 +351,9 @@ def main():
     iso2sp = dict(zip(m.isolate, m.species_genome))
 
     # ~78 tips (55 isolates + 21 refs + 2 outgroup) -> tall figure, two full-height columns
-    fig = plt.figure(figsize=(7.4, 9.6))
-    axA = fig.add_axes([0.01, 0.02, 0.45, 0.94])   # cladogram, full height, left
-    axB = fig.add_axes([0.62, 0.30, 0.26, 0.56])   # ANI heatmap, top-right, labels on top
+    fig = plt.figure(figsize=(8.4, 9.6))
+    axA = fig.add_axes([0.01, 0.02, 0.40, 0.94])   # cladogram, full height, left
+    axB = fig.add_axes([0.55, 0.20, 0.36, 0.66])   # ANI heatmap, top-right, labels on top
 
     panel_A(axA, iso2sp)
     panel_B(axB)

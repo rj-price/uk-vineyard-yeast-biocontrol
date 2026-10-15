@@ -18,7 +18,7 @@ ORG = {
     "Pichia kluyveri": "Pichia kluyveri",
     "Sporobolomyces roseus": "Sporobolomyces roseus",
     "Sporobolomyces sp.": "Sporobolomyces sp.",
-    "Rhodotorula cf. babjevae": "Rhodotorula sp.",
+    "Rhodotorula aff. babjevae": "Rhodotorula sp.",
     "Metschnikowia cf. pulcherrima": "Metschnikowia sp.",
     "Vishniacozyma carnescens": "Vishniacozyma carnescens",
     "Vishniacozyma victoriae": "Vishniacozyma victoriae",

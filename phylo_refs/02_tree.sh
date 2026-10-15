@@ -14,7 +14,7 @@ BP=/mnt/apps/users/jnprice/BUSCO_phylogenomics/BUSCO_phylogenomics.py
 
 echo "=== completed BUSCO runs: $(ls -d $DIR/busco_runs/*/ | wc -l)"
 rm -rf "$DIR/phylo_out"
-# BUSCOs complete & single-copy in >=90% of taxa (100% too strict across 83 divergent taxa)
+# BUSCOs complete & single-copy in >=90% of taxa (100% too strict across 80 divergent taxa)
 conda run -n BUSCO_phylogenomics python "$BP" \
     -i "$DIR/busco_runs" -o "$DIR/phylo_out" -t "$SLURM_CPUS_PER_TASK" \
     --supermatrix_only -psc 90

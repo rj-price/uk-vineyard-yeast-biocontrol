@@ -27,11 +27,11 @@ DATA = "analysis/data"
 
 # genus -> (Kent isolates, [(global label, results-id, origin)])
 GROUPS = {
-    "Rhodotorula sp. (cf. babjevae)": (
+    "Rhodotorula sp. (aff. babjevae)": (
         ["UY1", "TY27", "TY28", "TY29"],
         [("JJ10.1", "RHOjj101", "China"), ("DBVPG 8058", "RHOdbvpg", "coll.")]),
     "Hanseniaspora uvarum": (
-        ["RY14", "RY13", "RY7", "RY25"],
+        ["RY14", "RY3", "RY4", "RY7", "RY25"],
         [("UKR", "HUVukr", "Ukraine"), ("AUS", "HUVaus", "Australia"),
          ("CHN", "HUVchn", "China")]),
 }
@@ -62,12 +62,17 @@ def inventory(iso):
     for cls in CAZY_CLASS:
         rec[cls] = 0
         rec[cls + "|sec"] = 0
-    cazcol = "CAZyme" if "CAZyme" in ann.columns else None
-    for _, r in ann.iterrows():
-        classes = {FAM2CLASS[f] for f in fams_from(r.get(cazcol, "")) if f in FAM2CLASS}
-        for c in classes:
+    # same CAZyme call as Table S6 (08_mining_summary.py): dbCAN genes supported by
+    # >= 2 tools, family taken from dbCAN_hmm, then DIAMOND, then dbCAN_sub
+    ov = pd.read_csv(f"{d}/dbcan/overview.tsv", sep="\t")
+    ov.columns = [c.strip() for c in ov.columns]
+    ov = ov[pd.to_numeric(ov["#ofTools"], errors="coerce").fillna(0) >= 2]
+    for _, r in ov.iterrows():
+        fam = next((f[0] for f in (fams_from(r[c]) for c in ("dbCAN_hmm", "DIAMOND", "dbCAN_sub")) if f), None)
+        c = FAM2CLASS.get(fam)
+        if c:
             rec[c] += 1
-            if r["sec"]:
+            if r["Gene ID"] in sec:
                 rec[c + "|sec"] += 1
     # proteases (MEROPS col)
     pcol = "Protease" if "Protease" in ann.columns else None
@@ -107,12 +112,16 @@ def panel(ax, df, genus, cax=None):
     sub = df[df.genus == genus].reset_index(drop=True)
     cols = [c for c in DISPLAY if c in sub.columns]
     M = sub[cols].astype(float).values
-    # per-column min-max for colour; annotate raw
+    # colour = deviation from the column median on a fixed 0-30 % scale (as Fig 4D), so
+    # a one- or two-gene difference in a large count stays pale; raw counts annotated
     Z = np.zeros_like(M)
     for j in range(M.shape[1]):
-        lo, hi = np.nanmin(M[:, j]), np.nanmax(M[:, j])
-        Z[:, j] = 0.0 if hi == lo else (M[:, j] - lo) / (hi - lo)
-    im = ax.imshow(Z, aspect="auto", cmap="Blues", vmin=0, vmax=1)
+        med = np.nanmedian(M[:, j])
+        dev = np.abs(M[:, j] - med)
+        # a one-gene difference is the annotation noise floor: left unshaded
+        Z[:, j] = np.where(dev <= 1, 0.0, dev / med if med else 0.0)
+    VMAX = 0.30
+    im = ax.imshow(Z, aspect="auto", cmap="Blues", vmin=0, vmax=VMAX)
     ax.set_xticks(range(len(cols)))
     ax.set_xticklabels([c.replace("|sec", " (secr.)").replace("\n", " ") for c in cols],
                        fontsize=5.8, rotation=35, ha="right", rotation_mode="anchor")
@@ -121,22 +130,23 @@ def panel(ax, df, genus, cax=None):
     for i in range(len(sub)):
         for j in range(len(cols)):
             ax.text(j, i, f"{int(M[i,j])}", ha="center", va="center", fontsize=5.4,
-                    color="white" if Z[i, j] > 0.6 else fs.INK)
+                    color="white" if Z[i, j] > 0.6 * VMAX else fs.INK)
     nk = (sub.grp == "Kent").sum()
     ax.axhline(nk - 0.5, color="#CC3311", lw=1.8)
-    ax.text(-0.5, (nk - 1) / 2, "Kent", rotation=90, va="center", ha="right",
-            fontsize=6, color="#CC3311", fontweight="bold")
-    ax.text(-0.5, nk + (len(sub) - nk - 1) / 2, "global", rotation=90, va="center",
-            ha="right", fontsize=6, color=fs.MUTED, fontweight="bold")
+    yt = ax.get_yaxis_transform()   # x in axes fraction: sit left of the isolate names
+    ax.text(-0.25, (nk - 1) / 2, "Kent", rotation=90, va="center", ha="right",
+            fontsize=6, color="#CC3311", fontweight="bold", transform=yt)
+    ax.text(-0.25, nk + (len(sub) - nk - 1) / 2, "global", rotation=90, va="center",
+            ha="right", fontsize=6, color=fs.MUTED, fontweight="bold", transform=yt)
     ax.tick_params(length=0)
     for s in ax.spines.values():
         s.set_visible(False)
     ax.set_title(fs.patho_it(genus) if genus.startswith("Hansen") else
-                 "$\\it{Rhodotorula}$ sp. (cf. $\\it{babjevae}$)", fontsize=8, pad=16)
+                 "$\\it{Rhodotorula}$ sp. (aff. $\\it{babjevae}$)", fontsize=8, pad=16)
     if cax is not None:
-        cb = plt.colorbar(im, cax=cax, ticks=[0, 1])
-        cb.ax.set_yticklabels(["min", "max"]); cb.ax.tick_params(labelsize=5.5, length=2)
-        cb.set_label("per-column", fontsize=5.5)
+        cb = plt.colorbar(im, cax=cax, ticks=[0, 0.15, 0.30])
+        cb.ax.set_yticklabels(["0", "15%", "30%"]); cb.ax.tick_params(labelsize=5.5, length=2)
+        cb.set_label("deviation from column median", fontsize=5.5)
 
 
 def stats_note(df, genus):
@@ -153,16 +163,24 @@ def stats_note(df, genus):
         except ValueError:
             p = np.nan
         if p < 0.05:
-            bits.append(f"{c.splitlines()[0]} p={p:.2f}")
-    note = ("no biocontrol category differs (Mann–Whitney, all p>0.05)"
-            if not bits else "differs: " + "; ".join(bits))
+            bits.append(f"{c.splitlines()[0]} p={p:.3f}")
+    # State the smallest P value these group sizes can reach, so a null is not read as
+    # evidence of absence. With n_Kent vs n_global genomes, a two-sided Mann-Whitney U
+    # bottoms out at the value below even under perfect separation.
+    pfloor = mannwhitneyu(list(range(len(k))),
+                          list(range(100, 100 + len(g))),
+                          alternative="two-sided").pvalue
+    note = ("no biocontrol category differs (Mann–Whitney; n=%d vs %d, "
+            "smallest attainable p=%.3f)" % (len(k), len(g), pfloor)
+            if not bits else "differs: " + "; ".join(bits) +
+            " (n=%d vs %d, smallest attainable p=%.3f)" % (len(k), len(g), pfloor))
     # flag the secretome-size proxy separately if it separates the groups
     try:
         ps = mannwhitneyu(k["secretome"], g["secretome"], alternative="two-sided").pvalue
     except ValueError:
         ps = np.nan
     if ps < 0.06:
-        note += ("; total secretome size p=%.2f (tracks total gene count, "
+        note += ("; total secretome size p=%.3f (tracks total gene count, "
                  "not a specific mechanism)" % ps)
     return note
 
@@ -177,12 +195,12 @@ def main():
     axR = fig.add_axes([0.22, 0.62, 0.60, 0.25])
     axH = fig.add_axes([0.22, 0.16, 0.60, 0.27])
     caxR = fig.add_axes([0.85, 0.64, 0.015, 0.20])
-    panel(axR, df, "Rhodotorula sp. (cf. babjevae)", caxR)
+    panel(axR, df, "Rhodotorula sp. (aff. babjevae)", caxR)
     panel(axH, df, "Hanseniaspora uvarum")
 
     fig.text(0.02, 0.93, "A", fontsize=12, fontweight="bold", va="top")
     fig.text(0.02, 0.49, "B", fontsize=12, fontweight="bold", va="top")
-    for genus, y in [("Rhodotorula sp. (cf. babjevae)", 0.515),
+    for genus, y in [("Rhodotorula sp. (aff. babjevae)", 0.515),
                      ("Hanseniaspora uvarum", 0.055)]:
         fig.text(0.22, y, stats_note(df, genus), fontsize=6, color=fs.MUTED, va="top")
     fig.suptitle("Biocontrol gene content: Kent isolates vs global conspecifics",

@@ -84,7 +84,7 @@ def main():
     ann["is_reg"] = ann.cats.map(len) > 0
 
     v = pd.read_csv(f"{DATA}/clonal_variants.csv").fillna("")
-    imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "indel_in_gene"])]
+    imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "frameshift", "inframe_indel"])]
     hit_tx = set(imp.transcript) - {""}
 
     ann["hit"] = ann.TranscriptID.isin(hit_tx)

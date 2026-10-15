@@ -3,7 +3,7 @@
 30_ncbi_upload.py — assemble the NCBI submission package.
 Copies genome assemblies (renamed to paper isolate codes) into ncbi_upload/genomes/,
 writes a manifest, and emits the tar member-list for selective read extraction.
-Paper set = 55 sequenced isolates (excludes 5 dropped Sporobolomyces).
+Paper set = the 55 sequenced isolates among the 56 screened.
 """
 import os, glob, shutil
 import pandas as pd
@@ -15,11 +15,11 @@ PLAT = f"{BASE}/analysis/final_assemblies/ascomycetes_platanus"   # 26 ascomycet
 SPADES = f"{BASE}/genomics"                                        # SPAdes scaffolds
 TARROOT = "X204SC24101850-Z01-F001/01.RawData"
 
-DROP = {"TY8", "TY9", "TY12", "TY17", "TY24"}   # 5 dropped Sporobolomyces
+SCREENED = set(pd.read_csv(f"{BASE}/analysis/data/prelim_screen.csv").isolate)
 os.makedirs(GEN, exist_ok=True)
 
 m = pd.read_csv(f"{BASE}/analysis/data/isolate_master.csv")
-m = m[~m.isolate.isin(DROP)].copy()
+m = m[m.isolate.isin(SCREENED)].copy()
 assert len(m) == 55, f"expected 55, got {len(m)}"
 
 # ascomycete = has a Platanus assembly named by seq_id
