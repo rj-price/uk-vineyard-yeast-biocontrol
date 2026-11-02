@@ -28,7 +28,11 @@ PROJ = "/mnt/shared/scratch/jnprice/private/biocontrol_yeast"
 CL = f"{PROJ}/analysis/allelic/clonal_ref"
 RES = f"{PROJ}/analysis/mining/results"
 DATA = f"{PROJ}/analysis/data"
-REF, QRY = "UY1", "TY27"
+# CLONAL_REF/CLONAL_QRY select the group; QRY may be "UY2+UY3" (alt in all listed members).
+# Non-default groups write *_<REF>.csv so the published UY1/TY27 files are untouched.
+REF = os.environ.get("CLONAL_REF", "UY1")
+QRY = os.environ.get("CLONAL_QRY", "TY27")
+SFX = "" if REF == "UY1" else f"_{REF}"
 UPSTREAM = 1000
 
 
@@ -129,7 +133,9 @@ def cds_effect(tid, pos, rbase, qbase, genes, cds, contigs):
 def read_validated():
     """Read-validated UY1/TY27 differences from 38_clonal_reads.py (VCF-style alleles)."""
     v = pd.read_csv(f"{DATA}/clonal_reads_validated.csv")
-    v = v[(v.group == REF) & (v[f"{QRY}_gt"] > 0)]
+    v = v[v.group == REF]
+    for q in QRY.split("+"):
+        v = v[v[f"{q}_gt"] > 0]
     return pd.DataFrame(dict(rpos=v.pos, rbase=v.ref, qbase=v.alt.str.split(",").str[0],
                              rctg=v.ctg, kind=np.where(v.indel, "indel", "snp")))
 
@@ -149,7 +155,7 @@ def main():
     # read-level calls (reviewer point 3); the dnadiff set is kept for comparison in
     # clonal_variants_dnadiff.csv / clonal_dnadiff_vs_reads.csv
     d = read_validated()
-    print(f"variants UY1 vs {QRY}: {len(d)} "
+    print(f"variants {REF} vs {QRY}: {len(d)} "
           f"({(d.kind=='snp').sum()} SNPs, {(d.kind=='indel').sum()} indel rows)")
 
     genes, cds = load_genes(REF)
@@ -182,7 +188,7 @@ def main():
             secreted=(bool(a.is_secreted) if a is not None else False),
             pfam=(a.PFAM if a is not None else "")))
     v = pd.DataFrame(rows)
-    v.to_csv(f"{DATA}/clonal_variants.csv", index=False)
+    v.to_csv(f"{DATA}/clonal_variants{SFX}.csv", index=False)
 
     print("\n=== variants by context ===")
     print(v.context.value_counts().to_string())
@@ -191,7 +197,7 @@ def main():
 
     v["biocontrol"] = (v.cazyme != "") | (v.protease != "") | v.secreted
     cand = v[v.biocontrol & v.context.isin(["genic", "upstream"])].copy()
-    cand.to_csv(f"{DATA}/clonal_candidates.csv", index=False)
+    cand.to_csv(f"{DATA}/clonal_candidates{SFX}.csv", index=False)
 
     print(f"\n=== variants touching biocontrol genes (CAZyme/protease/secreted): "
           f"{len(cand)} in {cand.transcript.nunique()} genes ===")
@@ -204,7 +210,7 @@ def main():
     print(f"\n=== ALL protein-altering variants genome-wide: {len(imp)} in "
           f"{imp.transcript.nunique()} genes ===")
     print(imp.effect.value_counts().to_string())
-    print(f"\nWrote {DATA}/clonal_variants.csv + clonal_candidates.csv")
+    print(f"\nWrote {DATA}/clonal_variants{SFX}.csv + clonal_candidates{SFX}.csv")
 
 
 if __name__ == "__main__":

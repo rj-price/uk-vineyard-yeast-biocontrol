@@ -12,7 +12,8 @@ Call per pan-gene x genome, best miniprot hit:
 A gene is "variable" if its state is not the same in every genome of the set.
 
 Tests
-  H. uvarum: each variable gene vs B. cinerea activity in the dual-culture screen
+  H. uvarum: each variable gene vs B. cinerea inhibition in the qualitative pre-screen
+  (any of three strains; it covers all 22, whereas only 13 were quantified)
   (Fisher exact, BH-corrected), and whether it simply marks the active 9-isolate clade.
   Rhodotorula: genes whose state differs inside a near-clonal group
   (A = UY1, TY27, UY4; B = TY28, UY2, UY3; fastANI ~99.99%).
@@ -69,7 +70,7 @@ pre = pd.read_csv(f"{PROJ}/data/prelim_screen.csv").set_index("isolate")
 h = calls("Hanseniaspora")
 intact = (h == "intact").astype(int)
 var = intact[(intact.sum(axis=1) > 0) & (intact.sum(axis=1) < intact.shape[1])]
-act = (pre.loc[h.columns, "GI_Bc_ave"].fillna(0) > 0).astype(int)
+act = (pre.loc[h.columns, ["Bc21010", "Bc21024", "BcCHF"]].max(axis=1) > 0).astype(int)
 clade = pd.Series([int(c in CLADE) for c in h.columns], index=h.columns)
 ps, perfect_act, perfect_clade = [], 0, 0
 for gid, r in var.iterrows():

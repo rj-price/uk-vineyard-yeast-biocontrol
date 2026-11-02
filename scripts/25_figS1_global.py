@@ -9,7 +9,8 @@ two lead biocontrol lineages.
 (B) BUSCO-supermatrix phylogeny (midpoint-rooted phylogram) of the 22 Kent H. uvarum
     and the global H. uvarum genomes (re-deposits of the same strain removed, see
     global_context/meta/duplicate_assemblies.tsv); Kent tips filled if the isolate
-    suppressed B. cinerea in the dual-culture screen.
+    inhibited any B. cinerea strain in the qualitative pre-screen, which covered all 22
+    (only 13 went on to the quantitative screen, so it cannot be the tip state).
 """
 import os, sys, re
 import numpy as np, pandas as pd
@@ -143,7 +144,7 @@ def panel_B(ax):
         tree.prune(lf)
     tree.root_at_midpoint(); tree.ladderize()
     pre = pd.read_csv(f"{PROJ}/analysis/data/prelim_screen.csv").set_index("isolate")
-    bc_active = set(pre.index[pre.GI_Bc_ave.fillna(0) > 0])
+    bc_active = set(pre.index[pre[["Bc21010", "Bc21024", "BcCHF"]].max(axis=1) > 0])
     names = pd.read_csv(f"{GC}/huvarum_names.csv")
     kent = set(names[names.kind == "isolate"].name)
     annot = pd.read_csv(f"{GC}/meta/huvarum_annot.csv")
@@ -188,9 +189,9 @@ def panel_B(ax):
     ax.set_title("$\\it{Hanseniaspora\\ uvarum}$, Kent and global isolates",
                  fontsize=7.5, pad=2)
     handles = [Line2D([0], [0], marker="o", ls="", ms=5, color="#CC3311",
-               label="Kent, B. cinerea antagonist"),
+               label="Kent, inhibited $\\it{B.\\ cinerea}$ (pre-screen)"),
                Line2D([0], [0], marker="o", ls="", ms=5, mfc="white", mec="#CC3311",
-               label="Kent, not active in screen")]
+               label="Kent, no inhibition (pre-screen)")]
     handles += [Line2D([0], [0], marker="D", ls="", ms=5, color="#555",
                 label="global, grape/wine"),
                 Line2D([0], [0], marker="o", ls="", ms=5, color="#555",

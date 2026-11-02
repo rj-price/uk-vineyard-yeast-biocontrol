@@ -23,7 +23,8 @@ import statsmodels.api as sm
 PROJ = "/mnt/shared/scratch/jnprice/private/biocontrol_yeast"
 IPRO = f"{PROJ}/analysis/interpro/results"
 DATA = f"{PROJ}/analysis/data"
-REF = "UY1"
+REF = os.environ.get("CLONAL_REF", "UY1")
+SFX = "" if REF == "UY1" else f"_{REF}"
 
 # Curated GO terms per category (ancestor terms are not propagated by InterProScan,
 # so list the specific terms that actually appear on domain matches).
@@ -110,7 +111,7 @@ def main():
           f"({100*(p.go!='').sum()/len(p):.1f}%)")
     print("  (PFAM-only annotation reached 67.3%)")
 
-    v = pd.read_csv(f"{DATA}/clonal_variants.csv").fillna("")
+    v = pd.read_csv(f"{DATA}/clonal_variants{SFX}.csv").fillna("")
     imp = v[v.effect.isin(["missense", "nonsense", "stop_lost", "frameshift", "inframe_indel"])]
     hit = set(imp.transcript) - {""}
     p["hit"] = p.protein.isin(hit)
@@ -169,7 +170,7 @@ def main():
     print(f"\nbiocontrol genes: {k}/{n} variant-bearing ({100*k/n:.1f}%) vs "
           f"{K-k}/{N-n} rest of proteome ({100*(K-k)/(N-n):.1f}%); "
           f"diff 95% CI {100*lo:+.1f} to {100*hi:+.1f} pp; Fisher P = {fb.pvalue:.3f}")
-    r.to_csv(f"{DATA}/interpro_enrichment.csv", index=False)
+    r.to_csv(f"{DATA}/interpro_enrichment{SFX}.csv", index=False)
     print("\n=== GO-category enrichment among variant-bearing genes ===")
     print("(p_length_controlled = logistic regression with log10 protein length)")
     print(r.to_string(index=False))
@@ -177,7 +178,7 @@ def main():
     # annotated candidate list
     out = imp.merge(p[["protein", "plen", "ipr", "ipr_desc", "go", "ANY_regulatory"]],
                     left_on="transcript", right_on="protein", how="left")
-    out.to_csv(f"{DATA}/clonal_variants_ipr.csv", index=False)
+    out.to_csv(f"{DATA}/clonal_variants_ipr{SFX}.csv", index=False)
 
     print("\n=== variant-bearing genes now characterised by InterPro "
           "(previously 'hypothetical protein') ===")

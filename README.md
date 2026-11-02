@@ -51,7 +51,7 @@ and figures.
 | `global_context/` | Placing the UK isolates against global *Hanseniaspora uvarum* / *Rhodotorula* references (ANI + tree). Re-deposits of the same strain are listed once, per `meta/duplicate_assemblies.tsv`. |
 | `mining/` | Genome annotation (funannotate) and biocontrol-gene mining: CAZymes (dbCAN), secondary-metabolite clusters (antiSMASH), SignalP secretome, killer-toxin tblastn (`killer_toxins.faa` = curated panel). |
 | `interpro/` | InterProScan functional re-annotation of the mined genomes. |
-| `allelic/` | Within-species comparative genomics: OrthoFinder, within-clade ANI, eight-isolate *Rhodotorula* ANI (`09`), read-based variant calling within the two near-clonal *Rhodotorula* groups (`06`, `07`; BWA + bcftools) and accessory genes (`08`; CD-HIT + miniprot). The assembly-based dnadiff comparison (`03`, `05`) was superseded by the read-based calls. |
+| `allelic/` | Within-species comparative genomics: OrthoFinder, within-clade ANI, eight-isolate *Rhodotorula* ANI (`09`), read-based variant calling within the two near-clonal *Rhodotorula* groups (`06`, `07`; BWA + bcftools), the callable genome for those calls (`10`) and accessory genes (`08`; CD-HIT + miniprot). The assembly-based dnadiff comparison (`03`, `05`) was superseded by the read-based calls. |
 
 Helper modules: `scripts/_palette.py` (shared species→colour map for every figure),
 `scripts/_figstyle.py` (matplotlib style), `scripts/_mk_*_sheet.py` (spreadsheet
@@ -93,6 +93,7 @@ conda run -n data_science python scripts/02_stats_figures.py   # phenotype stats
 # ... 03–18: QC, phylogeny, species ID, mining, secretome, comparative genomics ...
 # 38_clonal_reads.py (read-validated clonal variants) runs before 16–18;
 # 35–37: lineage signal, accessory genes, prioritisation-score sensitivity
+# 16 and 18 default to the UY1 group; CLONAL_REF=TY28 CLONAL_QRY=UY2+UY3 runs the second group
 conda run -n data_science python scripts/19_fig1_screen.py     # manuscript figures
 # ... 20–28: remaining main + supplementary figures ...
 conda run -n data_science python scripts/27_supp_tables.py     # supplementary tables
@@ -114,6 +115,10 @@ Three code systems refer to the same physical isolates:
 
 The genome code is the assay code with a leading culture-`C` (`CUY→UY`, `CTY→TY`,
 `RY→RY`); the sequencing ID maps via the master table (`scripts/01_build_master.py`).
+
+## Citation
+
+If you use this code, please cite the paper and the archived release (see [`CITATION.cff`](CITATION.cff)).
 
 ## Licence
 
