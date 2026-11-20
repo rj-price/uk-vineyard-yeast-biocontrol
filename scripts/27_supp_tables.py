@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 """
-27_supp_tables.py -> analysis/manuscript/supplementary/Table_S1..S10.csv
-Assembles submission-ready supplementary tables from the project data files.
+27_supp_tables.py -> analysis/manuscript/supplementary/Table_S1..S9.csv
+Assembles the supplementary tables from the project data files, numbered as in the
+submitted manuscript (S1 assembly/BUSCO, S2 reference genomes, S3 global comparators,
+S4 screen replicates, S5 isolates and identification, S6 mechanistic assays, S7 gene
+inventory, S8 clonal variants, S9 Kent vs global gene content).
 Kent isolate set = the 56 screened isolates, 55 of them sequenced.
 """
 import os, re, glob, json
@@ -30,7 +33,7 @@ def order(df):
     df["_n"] = df.isolate.str.extract(r"(\d+)").astype(int)
     return df.sort_values(["_p", "_n"]).drop(columns=["_p", "_n"])
 
-# ---------- Table S1 : isolates + genome-based identification ----------
+# ---------- Table S5 : isolates + genome-based identification + pre-screen ----------
 s1 = order(fin.merge(seq[["isolate", "genome_code", "seq_id"]], on="isolate", how="left"))
 s1["berry_source"] = s1.isolate.map(berry)
 s1["id_method"] = np.where(s1.basis.astype(str).str.startswith("ANI"),
@@ -40,13 +43,25 @@ s1 = s1[["isolate", "genome_code", "seq_id", "berry_source",
 s1.columns = ["Isolate", "Genome code", "Sequencing ID", "Berry source",
               "Genome-based species", "Closest reference", "ANI (%)", "ID method", "Confidence"]
 s1["ANI (%)"] = s1["ANI (%)"].round(2)
-s1.to_csv(f"{OUT}/Table_S1_isolates.csv", index=False)
+# qualitative pre-screen calls (1 = inhibition) and entry to the quantitative assay
+_pre = pd.read_csv(f"{D}/prelim_screen.csv").set_index("isolate")
+# NB: as submitted, the B. cinerea column is inhibition of Bc21010 OR Bc21024, although
+# its header names Bc21010 only (RY24, RY25 and RY26 inhibited Bc21024 but not Bc21010).
+# Fig 5B and the accessory-gene test (25_fig5_global.py, 36_accessory.py) instead use
+# any of the three strains (Bc21010, Bc21024, BcCHF); the two definitions differ only
+# for RY17, which inhibited BcCHF alone.
+s1["Pre-screen B. cinerea Bc21010"] = s1.Isolate.map(_pre[["Bc21010", "Bc21024"]].max(axis=1))
+s1["Pre-screen F. oxysporum FoAJ516"] = s1.Isolate.map(_pre.FoAJ516)
+s1["Pre-screen F. graminearum Fg321"] = s1.Isolate.map(_pre.Fg321)
+_quant = set(pd.read_csv(f"{D}/phenotype_matrix.csv").dropna(subset=["MI_Bcinerea"]).isolate)
+s1["Quantitative assay"] = np.where(s1.Isolate.isin(_quant), "yes", "no")
+s1.to_csv(f"{OUT}/Table_S5_isolates.csv", index=False)
 # Every later table takes its species label from S1, so names stay consistent.
 SP = dict(zip(s1.Isolate, s1["Genome-based species"]))
 def sp(iso):
     return SP.get(iso, "not sequenced")
 
-# ---------- Table S2 : assembly & BUSCO statistics ----------
+# ---------- Table S1 : assembly & BUSCO statistics + BioSample accessions ----------
 s2 = order(seq.copy())
 s2["Assembler"] = np.where(s2.species_genome.map(genus).isin(["Hanseniaspora", "Pichia"]),
                            "Platanus-allee", "SPAdes")
@@ -104,9 +119,12 @@ s2.columns = ["Isolate", "Species", "Assembler", "Assembly (Mb)", "Contigs", "N5
               "BUSCO missing (%)"]
 for c in ["GC (%)", "BUSCO complete (%)", "BUSCO duplicated (%)", "BUSCO fragmented (%)", "BUSCO missing (%)"]:
     s2[c] = s2[c].round(1)
-s2.to_csv(f"{OUT}/Table_S2_assembly_busco.csv", index=False)
+# BioSample accessions from the NCBI genome batch sheet (scripts/34_fill_genome_template.py)
+_bs = pd.read_csv("ncbi_upload/genome_data.tsv", sep="\t")
+s2.insert(1, "BioSample Accession", s2.Isolate.map(dict(zip(_bs.sample_name, _bs.biosample_accession))))
+s2.to_csv(f"{OUT}/Table_S1_assembly_busco.csv", index=False)
 
-# ---------- Table S3 : reference / type-strain genomes used for ANI & phylogeny ----------
+# ---------- Table S2 : reference / type-strain genomes used for ANI & phylogeny ----------
 # Species, strain and type status come from NCBI (datasets summary genome, saved in
 # species_id/ref_metadata.tsv), not from the download file names, some of which are stale.
 meta = pd.read_csv("analysis/species_id/ref_metadata.tsv", sep="\t", header=None,
@@ -155,7 +173,7 @@ for line in open("analysis/species_id/metsch_clade/meta.jsonl"):
                  "Assembly accession": acc, "Assembly level": j["assembly_info"]["assembly_level"],
                  "Used for": note})
 s3 = pd.DataFrame(rows).sort_values(["Species (NCBI)", "Strain"])
-s3.to_csv(f"{OUT}/Table_S3_reference_genomes.csv", index=False)
+s3.to_csv(f"{OUT}/Table_S2_reference_genomes.csv", index=False)
 
 # ---------- Table S4 : quantitative dual-culture screen, individual replicates ----------
 # Raw colony diameters (mm) of the three biological replicates per yeast-pathogen pair,
@@ -189,7 +207,7 @@ s4.insert(1, "Genome-based species", s4.isolate.map(sp))
 s4 = s4.rename(columns={"isolate": "Isolate"})
 s4.to_csv(f"{OUT}/Table_S4_screen.csv", index=False)
 
-# ---------- Table S5 : mechanistic assays ----------
+# ---------- Table S6 : mechanistic assays ----------
 pm = pd.read_csv(f"{D}/phenotype_matrix.csv")
 enzc = [c for c in pm.columns if c.startswith("enz_")]
 s5 = order(pm)[["isolate", "species",
@@ -206,9 +224,9 @@ s5.columns = ["Isolate", "Species",
 s5 = s5[s5.iloc[:, 2:].notna().any(axis=1)].copy()      # only isolates actually assayed
 s5["Species"] = s5.Isolate.map(sp)
 s5 = s5.round(2)
-s5.to_csv(f"{OUT}/Table_S5_mechanistic.csv", index=False)
+s5.to_csv(f"{OUT}/Table_S6_mechanistic.csv", index=False)
 
-# ---------- Table S6 : biocontrol gene inventory of mined genomes ----------
+# ---------- Table S7 : biocontrol gene inventory of mined genomes ----------
 mi = pd.read_csv(f"{D}/mining_gene_inventory.csv")
 sec = pd.read_csv(f"{D}/secretome_inventory.csv")
 s6 = mi.merge(sec[["isolate", "n_secreted", "MEROPS_protease | secr"]], on="isolate", how="left")
@@ -241,17 +259,15 @@ s6 = s6.rename(columns={"isolate": "Isolate", "species": "Species",
                         "SM:Terpenes (VOCs)": "SM clusters: terpene",
                         "SM:CDPS / pulcherrimin (iron)": "SM clusters: CDPS (pulcherrimin)",
                         "SM:NRPS": "SM clusters: NRPS", "SM:Other": "SM clusters: other"})
-s6.columns = [c.replace("b-1,", "β-1,") for c in s6.columns]
-s6.to_csv(f"{OUT}/Table_S6_gene_inventory.csv", index=False)
-
-# ---------- Table S7 : killer-toxin tblastn hits ----------
-kt = pd.read_csv(f"{D}/killer_toxin_hits.csv")
-kt = kt[kt.isolate.isin(SCREENED)]
-kt["species"] = kt.isolate.map(sp)
-s7 = order(kt)[["isolate", "species", "toxin", "pident", "length", "qcovs", "evalue", "call", "Bc_dual"]]
-s7.columns = ["Isolate", "Species", "Killer toxin (query)", "Identity (%)", "Aln length",
-              "Query cov (%)", "E-value", "Call", "B. cinerea antagonist"]
-s7.to_csv(f"{OUT}/Table_S7_killer_toxin.csv", index=False)
+s6.columns = [c.replace("β-1,", "b-1,") for c in s6.columns]
+_front = ["Isolate", "Species", "Predicted genes", "CAZymes (total)",
+          "Fungal-wall CAZymes (total)", "Fungal-wall CAZymes (secreted)"]
+_cls = [c for c in s6.columns if "(GH" in c or "(CBM" in c]
+_back = ["MEROPS proteases (total)", "MEROPS proteases (secreted)", "Secreted proteins (SignalP)",
+         "SM clusters: terpene", "antiSMASH SM clusters", "SM clusters: CDPS (pulcherrimin)",
+         "SM clusters: other", "SM clusters: NRPS", "Named antifungal BGC products"]
+s6 = s6[_front + _cls + _back]
+s6.to_csv(f"{OUT}/Table_S7_gene_inventory.csv", index=False)
 
 # ---------- Table S8 : clonal-pair (UY1/TY27) protein-altering variants ----------
 cv = pd.read_csv(f"{D}/clonal_variants_ipr.csv")
@@ -262,7 +278,7 @@ s8.columns = ["Contig", "Position", "Ref", "Alt", "Type", "Effect", "AA change",
               "GO terms", "Regulatory"]
 s8.to_csv(f"{OUT}/Table_S8_clonal_variants.csv", index=False)
 
-# ---------- Table S9 : global comparator genomes ----------
+# ---------- Table S3 : global comparator genomes ----------
 def load_annot(f, sp_col):
     a = pd.read_csv(f)
     a = a.rename(columns={"acc": "Assembly accession", "sp": "Species (as deposited)",
@@ -281,9 +297,9 @@ s9 = pd.concat([h, r], ignore_index=True)
 # re-deposits of the same strain (see the tsv for ANI evidence) are listed once
 dup = set(pd.read_csv("analysis/global_context/meta/duplicate_assemblies.tsv", sep="\t").acc)
 s9 = s9[~s9["Assembly accession"].isin(dup)]
-s9.to_csv(f"{OUT}/Table_S9_global_comparators.csv", index=False)
+s9.to_csv(f"{OUT}/Table_S3_global_comparators.csv", index=False)
 
-# ---------- Table S10 : biocontrol gene content, Kent vs global ----------
+# ---------- Table S9 : biocontrol gene content, Kent vs global ----------
 bg = pd.read_csv(f"{D}/biocontrol_global_inventory.csv")
 # label the public genomes by strain and accession (see analysis/mining/samplesheet_global.tsv)
 GLOB = {"JJ10.1": ("JJ10.1", "GCA_026119225.1", "China"),
@@ -306,7 +322,8 @@ def _cn(c):
     return c.split("|")[0] + (" (secreted)" if c.endswith("|sec") else " (total)")
 bg.columns = (["Species", "Strain / isolate", "Assembly accession", "Origin", "Group",
                "Predicted genes", "Secreted proteins (SignalP)"] + [_cn(c) for c in cnt])
-bg.to_csv(f"{OUT}/Table_S10_biocontrol_kent_vs_global.csv", index=False)
+bg.columns = [c.replace("β-1,", "b-1,") for c in bg.columns]
+bg.to_csv(f"{OUT}/Table_S9_biocontrol_kent_vs_global.csv", index=False)
 
 # ---------- summary ----------
 for f in sorted(glob.glob(f"{OUT}/Table_S*.csv")):

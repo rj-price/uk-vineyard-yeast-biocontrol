@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this code, please cite it as below."
-title: "Analysis code for: Genome mining of UK vineyard yeasts partly assigns biocontrol mechanism between genera but does not predict antagonist strength within a species"
+title: "Analysis code for: Genome mining of UK vineyard yeasts partly assigns biocontrol mechanism between genera but not strain-level antagonism"
 type: software
-version: 1.0.0
-date-released: 2026-11-02
+version: 1.0.1
+date-released: 2026-11-20
 license: MIT
 repository-code: "https://github.com/rj-price/uk-vineyard-yeast-biocontrol"
 authors:

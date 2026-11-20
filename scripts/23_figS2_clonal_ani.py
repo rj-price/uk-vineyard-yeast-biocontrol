@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """
-23_fig5_within.py  ->  figures/manuscript/FigS1_clonal_ani.{svg,png}
-Supplementary figure (demoted from former Fig 5C) — within-group ANI of the two
-conspecific comparison sets, showing the near-clonal UY1/TY27 pair (99.99% ANI)
+23_figS2_clonal_ani.py  ->  figures/manuscript/FigS2_clonal_ani.{svg,png}
+Fig S2 (demoted from former Fig 5C) — within-group ANI of the two
+conspecific comparison sets: all eight Kent Rhodotorula isolates, with the two
+near-clonal groups {UY1, UY4, TY27} and {TY28, UY2, UY3} boxed (~99.99% ANI)
 that underpins the natural-experiment argument. The within-genus phenotype and
 matched-gene-content panels now live in main Fig 4 (E/F); the clonal-variant
 breakdown is reported in the text.
@@ -111,8 +112,8 @@ def panel_B(ax):
     cb.ax.set_yticklabels(["0", "15%", "30%"]); cb.ax.tick_params(labelsize=5.5, length=2)
 
 
-def ani_matrix(ax, genus, isos, seqmap, title, star=None):
-    d = pd.read_csv(f"{ALL}/{genus}_ani_within.tsv", sep="\t", header=None,
+def ani_matrix(ax, genus, isos, seqmap, title, boxes=(), src=None):
+    d = pd.read_csv(src or f"{ALL}/{genus}_ani_within.tsv", sep="\t", header=None,
                     names=["q", "r", "ani", "m", "t"])
     n = lambda p: re.sub(r"_EK.*", "", os.path.basename(p)).split(".")[0]
     d["q"] = d.q.map(n); d["r"] = d.r.map(n)
@@ -132,11 +133,12 @@ def ani_matrix(ax, genus, isos, seqmap, title, star=None):
                 txt = f"{v:.2f}" if v < 100 else "—"
                 ax.text(j, i, txt, ha="center", va="center", fontsize=5.5,
                         color="white" if v >= 99.9 else fs.INK,
-                        fontweight="bold" if (star and isos[i] in star and isos[j] in star
-                                              and i != j) else "normal")
-    if star:
-        si = [isos.index(s) for s in star]
-        ax.add_patch(Rectangle((min(si) - 0.5, min(si) - 0.5), 2, 2, fill=False,
+                        fontweight="bold" if (i != j and any(isos[i] in b and isos[j] in b
+                                                             for b in boxes)) else "normal")
+    for b in boxes:
+        si = [isos.index(s) for s in b]
+        k = len(si)
+        ax.add_patch(Rectangle((min(si) - 0.5, min(si) - 0.5), k, k, fill=False,
                      edgecolor="#111", lw=1.6))
     ax.set_title(title, fontsize=7, pad=3)
     ax.tick_params(length=0)
@@ -178,22 +180,27 @@ def main():
     master = pd.read_csv(f"{DATA}/isolate_master.csv")
     seqmap = dict(zip(master.isolate, master.seq_id))
 
-    fig = plt.figure(figsize=(7.0, 3.6))
-    axC1 = fig.add_axes([0.10, 0.20, 0.34, 0.62])
-    axC2 = fig.add_axes([0.56, 0.30, 0.26, 0.42])
+    fig = plt.figure(figsize=(7.0, 4.2))
+    axC1 = fig.add_axes([0.07, 0.08, 0.50, 0.78])
+    axC2 = fig.add_axes([0.64, 0.30, 0.20, 0.34])
 
-    im = ani_matrix(axC1, "Rhodotorula", ["UY1", "TY27", "TY28", "TY29"], seqmap,
-                    "$\\it{Rhodotorula}$ aff. $\\it{babjevae}$", star=["UY1", "TY27"])
+    # All eight Kent Rhodotorula isolates, from the all-vs-all complex run
+    # (global_context/rhodo_ani.tsv); the allelic/ within file has only four.
+    im = ani_matrix(axC1, "Rhodotorula",
+                    ["UY1", "UY4", "TY27", "TY28", "UY2", "UY3", "TY13", "TY29"], seqmap,
+                    "$\\it{Rhodotorula}$ aff. $\\it{babjevae}$",
+                    boxes=[["UY1", "UY4", "TY27"], ["TY28", "UY2", "UY3"]],
+                    src=f"{PROJ}/analysis/global_context/rhodo_ani.tsv")
     ani_matrix(axC2, "Hanseniaspora", ["RY14", "RY7", "RY25"], seqmap,
                "$\\it{Hanseniaspora\\ uvarum}$")
     cb = fig.colorbar(im, ax=axC2, fraction=0.06, pad=0.06, ticks=[99, 99.5, 100])
     cb.set_label("ANI (%)", fontsize=6); cb.ax.tick_params(labelsize=6, length=2)
 
-    fig.text(0.5, 0.95, "Within-group ANI (near-clonal UY1/TY27 pair boxed)",
+    fig.text(0.5, 0.95, "Within-species ANI (near-clonal groups boxed)",
              fontsize=8.5, fontweight="bold", va="top", ha="center")
 
-    fs.save(fig, f"{OUT}/FigS1_clonal_ani")
-    print("wrote FigS1_clonal_ani (demoted from former Fig 5C)")
+    fs.save(fig, f"{OUT}/FigS2_clonal_ani")
+    print("wrote FigS2_clonal_ani")
 
 
 if __name__ == "__main__":

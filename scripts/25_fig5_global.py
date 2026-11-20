@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-25_figS1_global.py -> figures/manuscript/Fig5_global.{svg,png}
+25_fig5_global.py -> figures/manuscript/Fig5_global.{svg,png}
 Manuscript Figure 5 (promoted from former Fig S1) — global genomic context of the
 two lead biocontrol lineages.
 (A) ANI within the Rhodotorula babjevae/graminis complex: the Kent isolates form a

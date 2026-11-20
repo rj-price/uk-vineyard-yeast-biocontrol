@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-24_fig6_invivo.py  ->  figures/manuscript/Fig6_prioritisation.{svg,png}
+24_fig6_prioritisation.py  ->  figures/manuscript/Fig6_prioritisation.{svg,png}
 Manuscript Figure 6 — genome-characterised candidate prioritisation.
 Top isolates by a composite score over measured phenotypes, showing pathogen
 suppression (%MI) and mechanism profile, coloured by species.

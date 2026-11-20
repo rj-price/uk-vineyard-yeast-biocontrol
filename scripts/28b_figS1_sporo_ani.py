@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-28b_sporo_ani.py -> Supplementary figure: ANI of the Sporobolomyces isolates against
+28b_figS1_sporo_ani.py -> Fig S1: ANI of the Sporobolomyces isolates against
 ALL Sporobolomyces reference species (from the expanded fastANI run ani2_raw.tsv).
 Shows the S. roseus group (>=95% to S. roseus) versus the cryptic second species
 (~83% to S. roseus, <=78% to every other Sporobolomyces species = undescribed).
@@ -86,9 +86,9 @@ ax.set_title("Whole-genome ANI of the $\\it{Sporobolomyces}$ isolates against al
 # blank-cell explanation lives in the figure legend
 plt.tight_layout()
 for ext in ("png", "svg"):
-    plt.savefig(f"{FIG}/FigS3_sporobolomyces_ani.{ext}", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{FIG}/FigS1_sporobolomyces_ani.{ext}", dpi=300, bbox_inches="tight")
 plt.close()
-print("wrote FigS3_sporobolomyces_ani.png/.svg")
+print("wrote FigS1_sporobolomyces_ani.png/.svg")
 print(f"isolates: {len(roseus_grp)} roseus-group + {len(cryptic)} cryptic; refs: {len(cols)}")
 print("cryptic max-ANI to any Sporobolomyces ref:",
       {i: round(np.nanmax(M.loc[i].values), 1) for i in cryptic})

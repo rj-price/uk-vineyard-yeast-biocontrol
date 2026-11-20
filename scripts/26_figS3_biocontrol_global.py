@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-26_figS2_biocontrol_global.py -> figures/manuscript/FigS2_biocontrol_global.{svg,png}
-Supplementary figure — biocontrol-relevant gene content is indistinguishable between the
+26_figS3_biocontrol_global.py -> figures/manuscript/FigS3_biocontrol_global.{svg,png}
+Fig S3 — biocontrol-relevant gene content is indistinguishable between the
 Kent isolates and their global conspecifics, for both lead lineages. This is the
-gene-content complement to the ANI/phylogeny (Fig S1): the lineages are cosmopolitan AND
+gene-content complement to the ANI/phylogeny (Fig 5): the lineages are cosmopolitan AND
 carry the same biocontrol repertoire wherever they come from — consistent with the paper's
 central finding that Botrytis antagonism is not readable from gene content.
 
@@ -205,8 +205,8 @@ def main():
         fig.text(0.22, y, stats_note(df, genus), fontsize=6, color=fs.MUTED, va="top")
     fig.suptitle("Biocontrol gene content: Kent isolates vs global conspecifics",
                  fontsize=9, y=0.955, x=0.5)
-    fs.save(fig, f"{OUT}/FigS2_biocontrol_global")
-    print("wrote FigS2_biocontrol_global")
+    fs.save(fig, f"{OUT}/FigS3_biocontrol_global")
+    print("wrote FigS3_biocontrol_global")
     print(df[["genus", "label", "grp"] + [c for c in DISPLAY if c in df.columns]]
           .to_string(index=False))
 
